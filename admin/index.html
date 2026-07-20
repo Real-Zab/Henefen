@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Henefen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bordeaux:#7C2333; --ivory:#F6F2EA; --ink:#1B1714; --sand:#C9A876; --line:rgba(27,23,20,0.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:var(--ivory); color:var(--ink); font-family:'Inter',sans-serif; padding:0 0 60px; }
+  h1,h2,h3{ font-family:'Fraunces',serif; font-weight:500; }
+  header{ padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  header .logo{ font-family:'Fraunces',serif; font-style:italic; color:var(--bordeaux); font-size:20px; }
+  header button{ background:none; border:1px solid var(--ink); padding:8px 14px; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; }
+
+  #loginScreen{ max-width:360px; margin:80px auto; padding:0 22px; }
+  #loginScreen h1{ font-size:22px; margin-bottom:18px; }
+  #loginScreen input{ width:100%; padding:12px; border:1px solid var(--line); margin-bottom:12px; font-size:14px; background:#fff; }
+  #loginScreen button{ width:100%; background:var(--bordeaux); color:var(--ivory); border:none; padding:13px; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; }
+  #loginError{ color:var(--bordeaux); font-size:12.5px; margin-bottom:10px; display:none; }
+
+  main{ display:none; max-width:900px; margin:0 auto; padding:24px 22px; }
+  .tabs{ display:flex; gap:6px; margin-bottom:24px; overflow-x:auto; }
+  .tab{ padding:9px 16px; border:1px solid var(--ink); background:transparent; font-size:11.5px; letter-spacing:0.05em; text-transform:uppercase; cursor:pointer; white-space:nowrap; }
+  .tab.active{ background:var(--ink); color:var(--ivory); }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .card{ border:1px solid var(--line); padding:16px; margin-bottom:12px; background:#fff; }
+  .card-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .card h3{ font-size:15px; margin-bottom:4px; }
+  .card .meta{ font-size:12px; color:rgba(27,23,20,0.6); }
+  .card-actions{ display:flex; gap:8px; flex-shrink:0; }
+  .card-actions button{ background:none; border:1px solid var(--ink); padding:6px 10px; font-size:10.5px; cursor:pointer; text-transform:uppercase; letter-spacing:0.04em; }
+  .card-actions button.danger{ border-color:var(--bordeaux); color:var(--bordeaux); }
+
+  form.stacked{ display:flex; flex-direction:column; gap:10px; margin-bottom:24px; padding:16px; border:1px solid var(--line); background:#fff; }
+  form.stacked label{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6); }
+  form.stacked input, form.stacked select, form.stacked textarea{ padding:10px; border:1px solid var(--line); font-size:14px; font-family:'Inter',sans-serif; }
+  form.stacked button{ background:var(--bordeaux); color:var(--ivory); border:none; padding:12px; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; margin-top:6px; }
+  .color-row{ display:flex; gap:8px; align-items:center; }
+  .color-row input[type=text]{ flex:1; }
+  .color-row input[type=color]{ width:44px; padding:2px; }
+  .small-btn{ background:none; border:1px dashed var(--ink); padding:8px; font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em; }
+  .msg{ font-size:12.5px; padding:8px 0; }
+  .msg.ok{ color:#2e6b3e; }
+  .msg.error{ color:var(--bordeaux); }
+  .cat-edit{ display:flex; gap:8px; margin-bottom:10px; align-items:center; flex-wrap:wrap; }
+  .cat-edit span{ font-size:12px; width:110px; flex-shrink:0; }
+  .cat-edit input{ flex:1; min-width:100px; padding:8px; border:1px solid var(--line); font-size:13px; }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <h1>Admin Henefen</h1>
+  <div id="loginError" class="msg error"></div>
+  <input type="email" id="loginEmail" placeholder="Email" autocomplete="username">
+  <input type="password" id="loginPassword" placeholder="Mot de passe" autocomplete="current-password">
+  <button id="loginBtn">Se connecter</button>
+</div>
+
+<main id="mainPanel">
+  <header>
+    <span class="logo">Henefen — Admin</span>
+    <button id="logoutBtn">Déconnexion</button>
+  </header>
+
+  <div style="padding:24px 22px 0">
+    <div class="tabs">
+      <button class="tab active" data-tab="products">Produits</button>
+      <button class="tab" data-tab="categories">Catégories</button>
+      <button class="tab" data-tab="currency">Devises</button>
+    </div>
+
+    <div class="panel active" id="panel-products">
+      <h2 style="font-size:18px; margin-bottom:14px;">Ajouter un article</h2>
+      <form class="stacked" id="productForm">
+        <label>Nom</label>
+        <input type="text" id="pName" required>
+        <label>Description</label>
+        <textarea id="pDesc" rows="2"></textarea>
+        <label>Catégorie</label>
+        <select id="pCategory">
+          <option value="casual">Casual</option>
+          <option value="diner">Dîner</option>
+          <option value="ceremonie">Cérémonie</option>
+          <option value="traditionnel">Traditionnel</option>
+        </select>
+        <label>Type de pièce</label>
+        <select id="pType">
+          <option value="chemise">Chemise</option>
+          <option value="supersan">Supersan</option>
+          <option value="pantalon">Pantalon</option>
+          <option value="ensemble">Ensemble</option>
+        </select>
+        <label>Prix (FCFA)</label>
+        <input type="number" id="pPrice" required>
+        <label>Couleurs</label>
+        <div id="colorRows"></div>
+        <button type="button" class="small-btn" id="addColorRow">+ Ajouter une couleur</button>
+        <button type="submit">Créer l'article</button>
+        <div class="msg" id="productMsg"></div>
+      </form>
+
+      <h2 style="font-size:18px; margin-bottom:14px;">Catalogue</h2>
+      <div id="productList"></div>
+    </div>
+
+    <div class="panel" id="panel-categories">
+      <h2 style="font-size:18px; margin-bottom:14px;">Libellés des catégories</h2>
+      <div id="categoryEditor"></div>
+      <button class="small-btn" id="saveCategoriesBtn" style="margin-top:10px;">Enregistrer les libellés</button>
+      <div class="msg" id="categoryMsg"></div>
+    </div>
+
+    <div class="panel" id="panel-currency">
+      <h2 style="font-size:18px; margin-bottom:14px;">Taux de conversion (1 FCFA =)</h2>
+      <form class="stacked" id="currencyForm">
+        <label>EUR</label>
+        <input type="number" step="0.0000001" id="fxEur">
+        <label>USD</label>
+        <input type="number" step="0.0000001" id="fxUsd">
+        <label>GBP</label>
+        <input type="number" step="0.0000001" id="fxGbp">
+        <button type="submit">Enregistrer les taux</button>
+        <div class="msg" id="currencyMsg"></div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+  const loginScreen = document.getElementById('loginScreen');
+  const mainPanel = document.getElementById('mainPanel');
+
+  async function checkSession() {
+    try {
+      const res = await fetch('/api/admin/me');
+      if (res.ok) { showDashboard(); return true; }
+    } catch (e) {}
+    return false;
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        errEl.textContent = data.error || 'Connexion impossible';
+        errEl.style.display = 'block';
+        return;
+      }
+      showDashboard();
+    } catch (e) {
+      errEl.textContent = 'Erreur réseau — vérifie que la base D1 et ADMIN_SESSION_SECRET sont bien configurés.';
+      errEl.style.display = 'block';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    document.cookie = 'henefen_admin=; Path=/; Max-Age=0';
+    location.reload();
+  });
+
+  function showDashboard() {
+    loginScreen.style.display = 'none';
+    mainPanel.style.display = 'block';
+    loadProducts();
+    loadCategories();
+    loadSettings();
+  }
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Couleurs dynamiques dans le formulaire produit
+  function addColorRow(name = '', hex = '#7C2333') {
+    const row = document.createElement('div');
+    row.className = 'color-row';
+    row.innerHTML = `
+      <input type="color" value="${hex}">
+      <input type="text" placeholder="Nom de la couleur" value="${name}">
+      <button type="button" class="small-btn" onclick="this.parentElement.remove()">✕</button>
+    `;
+    document.getElementById('colorRows').appendChild(row);
+  }
+  document.getElementById('addColorRow').addEventListener('click', () => addColorRow());
+  addColorRow('Bordeaux', '#7C2333');
+
+  // Créer un produit
+  document.getElementById('productForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const colors = [...document.querySelectorAll('#colorRows .color-row')].map(row => ({
+      hex: row.querySelector('input[type=color]').value,
+      color_name: row.querySelector('input[type=text]').value
+    })).filter(c => c.color_name);
+
+    const body = {
+      name: document.getElementById('pName').value,
+      description: document.getElementById('pDesc').value,
+      category: document.getElementById('pCategory').value,
+      piece_type: document.getElementById('pType').value,
+      price_fcfa: Number(document.getElementById('pPrice').value),
+      colors
+    };
+    const msg = document.getElementById('productMsg');
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      msg.textContent = 'Article créé.'; msg.className = 'msg ok';
+      document.getElementById('productForm').reset();
+      document.getElementById('colorRows').innerHTML = '';
+      addColorRow('Bordeaux', '#7C2333');
+      loadProducts();
+    } catch (err) {
+      msg.textContent = 'Erreur : ' + err.message; msg.className = 'msg error';
+    }
+  });
+
+  async function loadProducts() {
+    const list = document.getElementById('productList');
+    list.innerHTML = 'Chargement…';
+    try {
+      const res = await fetch('/api/admin/products');
+      const data = await res.json();
+      list.innerHTML = '';
+      data.products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-row">
+            <div>
+              <h3>${p.name} ${p.active ? '' : '<span style="color:#7C2333">(masqué)</span>'}</h3>
+              <div class="meta">${p.category} · ${p.piece_type} · ${Number(p.price_fcfa).toLocaleString('fr-FR')} FCFA</div>
+            </div>
+            <div class="card-actions">
+              <button data-action="toggle" data-id="${p.id}" data-active="${p.active}">${p.active ? 'Masquer' : 'Afficher'}</button>
+              <button data-action="delete" data-id="${p.id}" class="danger">Supprimer</button>
+            </div>
+          </div>`;
+        list.appendChild(card);
+      });
+    } catch (e) {
+      list.innerHTML = '<div class="msg error">Impossible de charger le catalogue.</div>';
+    }
+  }
+
+  document.getElementById('productList').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.dataset.action === 'delete') {
+      if (!confirm('Supprimer définitivement cet article ?')) return;
+      await fetch('/api/admin/products?id=' + id, { method: 'DELETE' });
+      loadProducts();
+    } else if (btn.dataset.action === 'toggle') {
+      const active = btn.dataset.active === '1' ? 0 : 1;
+      await fetch('/api/admin/products', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, active })
+      });
+      loadProducts();
+    }
+  });
+
+  // Catégories
+  async function loadCategories() {
+    const editor = document.getElementById('categoryEditor');
+    editor.innerHTML = 'Chargement…';
+    const res = await fetch('/api/admin/categories');
+    const data = await res.json();
+    editor.innerHTML = '';
+    data.categories.forEach(c => {
+      const row = document.createElement('div');
+      row.innerHTML = `
+        <div class="cat-edit">
+          <span>${c.slug}</span>
+          <input type="text" data-slug="${c.slug}" data-field="label_top" value="${c.label_top}" placeholder="Texte du haut">
+          <input type="text" data-slug="${c.slug}" data-field="label_bottom" value="${c.label_bottom}" placeholder="Texte du bas">
+        </div>`;
+      editor.appendChild(row);
+    });
+  }
+
+  document.getElementById('saveCategoriesBtn').addEventListener('click', async () => {
+    const msg = document.getElementById('categoryMsg');
+    const slugs = [...new Set([...document.querySelectorAll('#categoryEditor input')].map(i => i.dataset.slug))];
+    try {
+      for (const slug of slugs) {
+        const label_top = document.querySelector(`input[data-slug="${slug}"][data-field="label_top"]`).value;
+        const label_bottom = document.querySelector(`input[data-slug="${slug}"][data-field="label_bottom"]`).value;
+        await fetch('/api/admin/categories', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug, label_top, label_bottom })
+        });
+      }
+      msg.textContent = 'Libellés enregistrés.'; msg.className = 'msg ok';
+    } catch (e) {
+      msg.textContent = 'Erreur lors de l\'enregistrement.'; msg.className = 'msg error';
+    }
+  });
+
+  // Devises
+  async function loadSettings() {
+    const res = await fetch('/api/admin/settings');
+    const data = await res.json();
+    document.getElementById('fxEur').value = data.settings.fx_eur || '';
+    document.getElementById('fxUsd').value = data.settings.fx_usd || '';
+    document.getElementById('fxGbp').value = data.settings.fx_gbp || '';
+  }
+
+  document.getElementById('currencyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('currencyMsg');
+    try {
+      await fetch('/api/admin/settings', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fx_eur: document.getElementById('fxEur').value,
+          fx_usd: document.getElementById('fxUsd').value,
+          fx_gbp: document.getElementById('fxGbp').value
+        })
+      });
+      msg.textContent = 'Taux enregistrés.'; msg.className = 'msg ok';
+    } catch (e) {
+      msg.textContent = 'Erreur lors de l\'enregistrement.'; msg.className = 'msg error';
+    }
+  });
+
+  checkSession();
+</script>
+</body>
+</html>

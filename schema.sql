@@ -62,7 +62,34 @@ CREATE TABLE IF NOT EXISTS order_items (
   unit_price_fcfa INTEGER NOT NULL
 );
 
--- Données de démonstration (à remplacer depuis l'admin)
+CREATE TABLE IF NOT EXISTS categories (
+  slug TEXT PRIMARY KEY CHECK (slug IN ('casual','diner','ceremonie','traditionnel')),
+  label_top TEXT NOT NULL,
+  label_bottom TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+INSERT INTO categories (slug, label_top, label_bottom, sort_order) VALUES
+  ('casual', 'Jour', 'Casual', 0),
+  ('diner', 'Soir', 'Dîner', 1),
+  ('ceremonie', 'Grand jour', 'Cérémonie', 2),
+  ('traditionnel', 'Héritage', 'Tenue traditionnelle', 3);
+
+-- Taux de conversion FCFA -> devise (1 FCFA = X devise). Modifiable depuis l'admin.
+INSERT INTO settings (key, value) VALUES
+  ('fx_eur', '0.0015244'),
+  ('fx_usd', '0.00165'),
+  ('fx_gbp', '0.0012987');
+
+-- Compte admin de démo — email: admin@henefen.sn / mot de passe temporaire: Henefen2026!
+-- CHANGE CE MOT DE PASSE dès ta première connexion (voir page admin > Mon compte)
+INSERT INTO admin_users (email, password_hash) VALUES
+  ('admin@henefen.sn', '9fc38a6757c4310ec9de92f0bc0afe572ef8eb4200df91551d83ce5145b43631');
 INSERT INTO products (name, slug, description, category, piece_type, price_fcfa) VALUES
   ('Chemise en lin, col mao', 'chemise-lin-col-mao', 'Coupe droite, manches longues — pièce casual ou dîner', 'casual', 'chemise', 45000),
   ('Supersan lin bordeaux', 'supersan-lin-bordeaux', 'Taille ajustable, coupe droite', 'casual', 'supersan', 38000);

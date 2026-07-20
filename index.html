@@ -46,7 +46,9 @@
     align-items:center;
     height:38px;
     overflow:hidden;
-    position:relative;
+    position:sticky;
+    top:0;
+    z-index:101;
     font-size:12.5px;
     letter-spacing:0.03em;
   }
@@ -101,6 +103,9 @@
     padding:18px 22px;
     border-bottom:1px solid var(--line);
     background:var(--ivory);
+    position:sticky;
+    top:38px;
+    z-index:100;
   }
   .nav-icon-btn{
     background:none; border:none; cursor:pointer;
@@ -189,6 +194,7 @@
     cursor:pointer;
     font-family:'Inter', sans-serif;
     font-weight:600;
+    text-decoration:none;
     transition:background .2s ease;
   }
   .btn:hover{ background:var(--bordeaux-dark); }
@@ -241,7 +247,7 @@
   }
   .builder .eyebrow{ color:var(--sand); }
   .builder h2{ font-size:24px; margin:8px 0 14px; color:var(--ivory); }
-  .builder p{ font-size:14px; line-height:1.6; color:rgba(246,242,234,0.75); max-width:38ch; margin-bottom:24px;}
+  .builder p{ font-size:14px; line-height:1.6; color:rgba(246,242,234,0.75); max-width:30ch; margin-bottom:24px;}
   .builder-pair{
     display:flex;
     gap:10px;
@@ -547,12 +553,12 @@
         <h3>Chemise en lin, col mao</h3>
         <div class="desc">Coupe droite, manches longues — pièce casual ou dîner</div>
         <div class="price-row">
-          <span class="price">45 000 FCFA</span>
-          <select class="currency-select">
-            <option>FCFA</option>
-            <option>EUR</option>
-            <option>USD</option>
-            <option>GBP</option>
+          <span class="price" id="demoPrice" data-fcfa="45000">45 000 FCFA</span>
+          <select class="currency-select" id="demoCurrency">
+            <option value="FCFA">FCFA</option>
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
           </select>
         </div>
         <div class="swatches">
@@ -637,6 +643,23 @@
       s.classList.add('active');
     });
   });
+
+  // Conversion de devise — taux fixes indicatifs (à ajuster depuis l'admin une fois construit)
+  const FX_RATES = { FCFA: 1, EUR: 1/655.96, USD: 1/605, GBP: 1/770 };
+  const FX_SYMBOL = { FCFA: 'FCFA', EUR: '€', USD: '$', GBP: '£' };
+  const demoPrice = document.getElementById('demoPrice');
+  const demoCurrency = document.getElementById('demoCurrency');
+  if (demoPrice && demoCurrency) {
+    demoCurrency.addEventListener('change', () => {
+      const fcfa = Number(demoPrice.dataset.fcfa);
+      const cur = demoCurrency.value;
+      const converted = fcfa * FX_RATES[cur];
+      const formatted = cur === 'FCFA'
+        ? Math.round(converted).toLocaleString('fr-FR') + ' FCFA'
+        : converted.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + FX_SYMBOL[cur];
+      demoPrice.textContent = formatted;
+    });
+  }
 </script>
 </body>
 </html>
