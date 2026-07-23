@@ -271,7 +271,8 @@
   /* ---------- Product card demo ---------- */
   .product-demo{ padding:56px 22px 64px; }
   .product-demo-layout{ display:block; }
-  .flank-card{ display:none; }
+  .product-demo-layout .product-card:first-child,
+  .product-demo-layout .product-card:last-child{ display:none; }
   .product-card{
     max-width:400px;
     margin:0 auto;
@@ -436,9 +437,10 @@
     .builder > *{ max-width:1200px; margin-left:auto; margin-right:auto; padding-left:48px; padding-right:48px; }
     .builder-pair{ max-width:520px; }
     .product-demo{ max-width:1200px; margin:0 auto; padding:72px 48px 90px; }
-    .product-demo-layout{ display:flex; align-items:flex-start; justify-content:center; gap:32px; }
-    .flank-card{ display:block; }
-    .product-demo-layout .product-card{ max-width:400px; flex-shrink:0; }
+    .product-demo-layout{ display:grid; grid-template-columns:repeat(3, 1fr); gap:24px; align-items:start; }
+    .product-demo-layout .product-card{ max-width:none; }
+    .product-demo-layout .product-card:first-child,
+    .product-demo-layout .product-card:last-child{ display:block; }
     .flank-card{ flex:1; max-width:260px; padding-top:56px; }
     .flank-card .grid-photo{ aspect-ratio:3/4; background:linear-gradient(150deg,#efe6d4,#C9A876 60%,#8f7248); margin-bottom:8px; }
     .flank-card h4{ font-size:13px; font-weight:500; margin-bottom:2px; }
@@ -546,10 +548,27 @@
       <h2>Aperçu d'article</h2>
     </div>
     <div class="product-demo-layout">
-    <div class="flank-card">
-      <div class="grid-photo"></div>
-      <h4>Ensemble dîner bordeaux</h4>
-      <span class="price">52 000 FCFA</span>
+    <div class="product-card">
+      <div class="product-main-photo">
+        photo article
+        <div class="dots"><span class="active"></span><span></span><span></span></div>
+      </div>
+      <div class="thumb-row">
+        <div class="thumb active"></div><div class="thumb"></div><div class="thumb"></div>
+      </div>
+      <div class="product-info">
+        <h3>Ensemble dîner bordeaux</h3>
+        <div class="desc">Chemise + supersan assortis, coupe droite</div>
+        <div class="price-row">
+          <span class="price">52 000 FCFA</span>
+          <select class="currency-select"><option>FCFA</option><option>EUR</option><option>USD</option><option>GBP</option></select>
+        </div>
+        <div class="swatches">
+          <div class="swatch active" style="background:#7C2333"></div>
+          <div class="swatch" style="background:#1B1714"></div>
+        </div>
+        <button class="mix-btn">Voir l'ensemble →</button>
+      </div>
     </div>
     <div class="product-card">
       <div class="product-main-photo">
@@ -584,16 +603,28 @@
         </div>
         <button class="mix-btn">Assortir avec un supersan →</button>
       </div>
-      <div class="related-row">
-        <div><div class="grid-photo"></div><span>Chemise lin ivoire</span></div>
-        <div><div class="grid-photo"></div><span>Supersan bordeaux</span></div>
-        <div><div class="grid-photo"></div><span>Ensemble cérémonie</span></div>
-      </div>
     </div>
-    <div class="flank-card">
-      <div class="grid-photo"></div>
-      <h4>Supersan lin sable</h4>
-      <span class="price">38 000 FCFA</span>
+    <div class="product-card">
+      <div class="product-main-photo">
+        photo article
+        <div class="dots"><span class="active"></span><span></span><span></span></div>
+      </div>
+      <div class="thumb-row">
+        <div class="thumb active"></div><div class="thumb"></div><div class="thumb"></div>
+      </div>
+      <div class="product-info">
+        <h3>Supersan lin sable</h3>
+        <div class="desc">Taille ajustable, coupe droite</div>
+        <div class="price-row">
+          <span class="price">38 000 FCFA</span>
+          <select class="currency-select"><option>FCFA</option><option>EUR</option><option>USD</option><option>GBP</option></select>
+        </div>
+        <div class="swatches">
+          <div class="swatch active" style="background:#C9A876"></div>
+          <div class="swatch" style="background:#EFE9DE; border:1px solid var(--line);"></div>
+        </div>
+        <button class="mix-btn">Assortir avec une chemise →</button>
+      </div>
     </div>
     </div>
   </section>
