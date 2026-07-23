@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Henefen — Made in Senegal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+    --bordeaux:#7C2333;
+    --bordeaux-dark:#5C1A26;
+    --ivory:#F6F2EA;
+    --ivory-dim:#EFE9DE;
+    --ink:#1B1714;
+    --charcoal:#211C19;
+    --sand:#C9A876;
+    --line:rgba(27,23,20,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ivory);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--sand);
+    font-weight:600;
+  }
+
+  /* ---------- Capsule marquee bar ---------- */
+  .marquee-bar{
+    background:var(--charcoal);
+    color:var(--ivory);
+    display:flex;
+    align-items:center;
+    height:38px;
+    overflow:hidden;
+    position:sticky;
+    top:0;
+    z-index:101;
+    font-size:12.5px;
+    letter-spacing:0.03em;
+  }
+  .marquee-track{
+    display:flex;
+    align-items:center;
+    white-space:nowrap;
+    animation:scroll-left 22s linear infinite;
+  }
+  .marquee-track.paused{ animation-play-state:paused; }
+  .marquee-track span{
+    padding:0 28px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .marquee-track span::after{
+    content:"•";
+    color:var(--sand);
+    margin-left:28px;
+  }
+  @keyframes scroll-left{
+    0%{ transform:translateX(0); }
+    100%{ transform:translateX(-50%); }
+  }
+  .pause-btn{
+    position:absolute;
+    right:14px;
+    top:0; bottom:0;
+    display:flex;
+    align-items:center;
+    background:none;
+    border:none;
+    color:var(--ivory);
+    cursor:pointer;
+    z-index:2;
+    padding:0 6px;
+  }
+  .pause-btn::before{
+    content:"";
+    position:absolute;
+    left:-24px; top:0; bottom:0; width:24px;
+    background:linear-gradient(to right, transparent, var(--charcoal) 80%);
+  }
+  .pause-btn svg{ width:14px; height:14px; }
+
+  /* ---------- Top nav ---------- */
+  .nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 22px;
+    border-bottom:1px solid var(--line);
+    background:var(--ivory);
+    position:sticky;
+    top:38px;
+    z-index:100;
+  }
+  .nav-icon-btn{
+    background:none; border:none; cursor:pointer;
+    color:var(--ink);
+    display:flex; align-items:center;
+  }
+  .nav-icon-btn svg{ width:20px; height:20px; }
+  .nav-right{ display:flex; gap:18px; align-items:center; }
+  .logo-wordmark{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:26px;
+    letter-spacing:0.01em;
+    color:var(--bordeaux);
+    text-decoration:none;
+  }
+  .logo-wrap{ text-align:center; }
+  .logo-sub{
+    font-size:8.5px;
+    letter-spacing:0.32em;
+    color:var(--ink);
+    text-transform:uppercase;
+    display:block;
+    margin-top:-2px;
+  }
+
+  /* signature squiggle — echoes the logo's underline stroke */
+  .squiggle{
+    display:block;
+    width:64px;
+    height:12px;
+    margin:10px auto 0;
+  }
+  .squiggle path{
+    fill:none;
+    stroke:var(--bordeaux);
+    stroke-width:2.4;
+    stroke-linecap:round;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    height:78vh;
+    min-height:460px;
+    background:
+      linear-gradient(0deg, rgba(27,23,20,0.6), rgba(27,23,20,0.15) 45%),
+      url('/assets/hero.jpg') center/cover no-repeat,
+      linear-gradient(160deg, #2b2420 0%, #1b1714 55%, #120f0d 100%);
+    display:flex;
+    align-items:flex-end;
+    overflow:hidden;
+  }
+  .hero-content{
+    position:relative;
+    z-index:2;
+    padding:0 24px 44px;
+    color:var(--ivory);
+  }
+  .hero-content .eyebrow{ color:var(--sand); }
+  .hero h1{
+    font-size:clamp(34px, 9vw, 52px);
+    line-height:1.05;
+    margin:10px 0 16px;
+    max-width:11ch;
+  }
+  .hero p{
+    font-size:14.5px;
+    line-height:1.6;
+    max-width:34ch;
+    color:rgba(246,242,234,0.82);
+    margin-bottom:22px;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    background:var(--bordeaux);
+    color:var(--ivory);
+    border:none;
+    padding:14px 24px;
+    font-size:12.5px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    text-decoration:none;
+    transition:background .2s ease;
+  }
+  .btn:hover{ background:var(--bordeaux-dark); }
+  .btn.ghost{
+    background:transparent;
+    border:1px solid rgba(246,242,234,0.5);
+  }
+
+  /* ---------- Category strip ---------- */
+  .section{ padding:56px 22px; }
+  .section-head{ margin-bottom:26px; }
+  .section-head h2{ font-size:24px; margin-top:6px; }
+
+  .cat-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+  }
+  .cat-tile{
+    position:relative;
+    aspect-ratio:3/4;
+    background:linear-gradient(155deg, #E4D9C4, #C9A876 65%, #B08F5C);
+    display:flex;
+    align-items:flex-end;
+    padding:14px;
+    overflow:hidden;
+  }
+  .cat-tile:nth-child(2){ background:linear-gradient(155deg, #3A2C2C, var(--bordeaux) 70%, var(--bordeaux-dark)); }
+  .cat-tile:nth-child(3){ background:linear-gradient(155deg, #d8cdb8, #a98f68 70%, #7c6742); }
+  .cat-tile:nth-child(4){ background:linear-gradient(155deg, #241d1a, #4a1e28 65%, var(--bordeaux-dark)); }
+  .cat-tile span{
+    color:var(--ivory);
+    font-family:'Fraunces', serif;
+    font-size:16px;
+    font-style:italic;
+  }
+  .cat-tile small{
+    position:absolute; top:14px; left:14px;
+    color:rgba(246,242,234,0.7);
+    font-size:10px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+  }
+
+  /* ---------- Ensemble builder teaser ---------- */
+  .builder{
+    background:var(--charcoal);
+    color:var(--ivory);
+    padding:56px 22px;
+  }
+  .builder .eyebrow{ color:var(--sand); }
+  .builder h2{ font-size:24px; margin:8px 0 14px; color:var(--ivory); }
+  .builder p{ font-size:14px; line-height:1.6; color:rgba(246,242,234,0.75); max-width:30ch; margin-bottom:24px;}
+  .builder-pair{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .builder-piece{
+    flex:1;
+    aspect-ratio:3/4;
+    background:linear-gradient(160deg, #3a322c, #241d1a);
+    border:1px solid rgba(246,242,234,0.14);
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:10px;
+    font-size:11px;
+    letter-spacing:0.04em;
+  }
+  .builder-piece b{ font-family:'Fraunces', serif; font-weight:500; font-style:italic; font-size:14px; display:block; margin-bottom:2px; }
+  .builder-plus{ color:var(--sand); font-size:20px; font-family:'Fraunces', serif; }
+
+  /* ---------- Product card demo ---------- */
+  .product-demo{ padding:56px 22px 64px; }
+  .product-card{
+    max-width:400px;
+    margin:0 auto;
+  }
+  .product-main-photo{
+    aspect-ratio:4/5;
+    background:linear-gradient(150deg, #efe6d4, #C9A876 60%, #8f7248);
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:rgba(27,23,20,0.35);
+    font-size:12px;
+    letter-spacing:0.08em;
+  }
+  .dots{
+    position:absolute;
+    bottom:12px; left:0; right:0;
+    display:flex;
+    justify-content:center;
+    gap:6px;
+  }
+  .dots span{
+    width:6px; height:6px; border-radius:50%;
+    background:rgba(27,23,20,0.25);
+  }
+  .dots span.active{ background:var(--bordeaux); width:16px; border-radius:3px; }
+
+  .thumb-row{
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+    overflow-x:auto;
+    padding-bottom:2px;
+  }
+  .thumb{
+    flex:0 0 56px;
+    aspect-ratio:3/4;
+    background:linear-gradient(150deg,#e7dcc4,#b89a6a);
+    cursor:pointer;
+    border:2px solid transparent;
+    opacity:0.65;
+  }
+  .thumb.active{ border-color:var(--bordeaux); opacity:1; }
+
+  .product-info{ padding:16px 2px 0; }
+  .product-info h3{
+    font-size:17px;
+    font-weight:500;
+    margin-bottom:4px;
+  }
+  .product-info .desc{ font-size:12.5px; color:rgba(27,23,20,0.6); margin-bottom:10px;}
+  .price-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .price{ font-family:'Fraunces', serif; font-size:19px; }
+  .currency-select{
+    font-size:11px;
+    letter-spacing:0.06em;
+    border:1px solid var(--line);
+    background:transparent;
+    padding:6px 10px;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+  }
+  .swatches{ display:flex; gap:8px; margin-bottom:16px; }
+  .swatch{
+    width:20px; height:20px;
+    border-radius:50%;
+    border:2px solid transparent;
+    cursor:pointer;
+    position:relative;
+  }
+  .swatch.active{ border-color:var(--ink); }
+  .swatch.active::after{
+    content:""; position:absolute; inset:3px; border-radius:50%; border:1.5px solid var(--ivory);
+  }
+  .mix-btn{
+    width:100%;
+    border:1px solid var(--ink);
+    background:transparent;
+    padding:13px;
+    font-size:11.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    font-weight:600;
+    cursor:pointer;
+    margin-bottom:8px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer{
+    background:var(--ink);
+    color:var(--ivory);
+    padding:48px 22px 30px;
+    text-align:center;
+  }
+  footer .logo-wordmark{ color:var(--ivory); font-size:22px; }
+  .footer-tagline{ font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(246,242,234,0.5); margin-top:6px; }
+  .social-row{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    margin:28px 0 24px;
+  }
+  .social-row a{
+    color:var(--ivory);
+    opacity:0.75;
+    display:flex;
+  }
+  .social-row svg{ width:19px; height:19px; }
+  .footer-contact{ font-size:12.5px; color:rgba(246,242,234,0.6); margin-bottom:6px; }
+  .footer-legal{ font-size:10.5px; color:rgba(246,242,234,0.35); margin-top:20px; }
+
+  .burger-menu{
+    position:fixed; inset:0;
+    background:rgba(27,23,20,0.6);
+    z-index:50;
+    display:none;
+  }
+  .burger-menu.open{ display:block; }
+  .burger-panel{
+    position:absolute; left:0; top:0; bottom:0;
+    width:78%;
+    max-width:320px;
+    background:var(--ivory);
+    padding:26px 24px;
+    display:flex;
+    flex-direction:column;
+  }
+  .burger-close{ align-self:flex-end; background:none; border:none; font-size:22px; cursor:pointer; color:var(--ink); margin-bottom:24px; }
+  .burger-panel a{
+    color:var(--ink);
+    text-decoration:none;
+    font-family:'Fraunces', serif;
+    font-size:19px;
+    font-style:italic;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .burger-panel .burger-note{
+    margin-top:auto;
+    font-size:11px;
+    color:rgba(27,23,20,0.5);
+    letter-spacing:0.04em;
+    line-height:1.6;
+  }
+
+  /* ---------- Desktop / large screens ---------- */
+  @media (min-width:860px){
+    .nav-inner, .nav{ max-width:1200px; margin:0 auto; }
+    .marquee-track{ animation-duration:34s; }
+    .hero{ height:64vh; }
+    .hero-content{ max-width:1200px; margin:0 auto; padding-left:48px; padding-right:48px; }
+    .section{ max-width:1200px; margin:0 auto; padding:72px 48px; }
+    .cat-grid{ grid-template-columns:repeat(4, 1fr); gap:18px; }
+    .cat-tile{ aspect-ratio:2/3; }
+    .builder{ padding:72px 0; }
+    .builder > *{ max-width:1200px; margin-left:auto; margin-right:auto; padding-left:48px; padding-right:48px; }
+    .builder-pair{ max-width:520px; }
+    .product-demo{ max-width:1200px; margin:0 auto; padding:72px 48px 90px; }
+    footer{ padding:64px 48px 36px; }
+  }
+  @media (min-width:1400px){
+    .hero-content, .section, .nav{ max-width:1320px; }
+  }
+  .burger-panel a{ text-align:left; }
+  @media (min-width:860px){
+    .burger-panel{ width:340px; }
+  }
+  .related-row{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:12px;
+    max-width:400px;
+    margin:28px auto 0;
+  }
+  .related-row .grid-photo{
+    aspect-ratio:3/4;
+    background:linear-gradient(150deg,#efe6d4,#C9A876 60%,#8f7248);
+    margin-bottom:6px;
+  }
+  .related-row span{ font-size:10.5px; color:rgba(27,23,20,0.6); }
+  @media (min-width:860px){
+    .related-row{ max-width:none; }
+  }
+
+</style>
+</head>
+<body>
+
+  <div class="marquee-bar">
+    <div class="marquee-track" id="marqueeTrack">
+      <span>Collection Été 26 — chemises en lin</span>
+      <span>Livraison à Dakar et vers la diaspora</span>
+      <span>Composez votre ensemble sur mesure</span>
+      <span>Nouveauté — tenues traditionnelles revisitées</span>
+      <span>Collection Été 26 — chemises en lin</span>
+      <span>Livraison à Dakar et vers la diaspora</span>
+      <span>Composez votre ensemble sur mesure</span>
+      <span>Nouveauté — tenues traditionnelles revisitées</span>
+    </div>
+    <button class="pause-btn" id="pauseBtn" aria-label="Mettre en pause le défilement">
+      <svg viewBox="0 0 24 24" fill="currentColor" id="pauseIcon"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+    </button>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-icon-btn" id="burgerBtn" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+    </button>
+    <div class="logo-wrap">
+      <a href="/" class="logo-wordmark">Henefen</a>
+      <span class="logo-sub">Made in Senegal</span>
+    </div>
+    <div class="nav-right">
+      <a href="/compte/" class="nav-icon-btn" aria-label="Compte">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c1.5-4 5-5.5 7.5-5.5s6 1.5 7.5 5.5"/></svg>
+      </a>
+      <a href="/panier/" class="nav-icon-btn" aria-label="Panier">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
+      </a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="eyebrow">100% Homme — 100% Sénégal</div>
+      <h1>Le vestiaire<br>made in Sénégal</h1>
+      <p>Chemises et ensembles en lin, du casual au cérémonial. Pensés à Dakar, portés partout.</p>
+      <a href="/boutique/" class="btn">Découvrir la collection</a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">Occasions</div>
+      <h2>Pour chaque moment</h2>
+    </div>
+    <div class="cat-grid">
+      <div class="cat-tile"><small>Jour</small><span>Casual</span></div>
+      <div class="cat-tile"><small>Soir</small><span>Dîner</span></div>
+      <div class="cat-tile"><small>Grand jour</small><span>Cérémonie</span></div>
+      <div class="cat-tile"><small>Héritage</small><span>Tenue traditionnelle</span></div>
+    </div>
+  </section>
+
+  <section class="builder" id="composer">
+    <div class="eyebrow">Sur mesure</div>
+    <h2>Votre style, votre association</h2>
+    <p>Une chemise qui vous plaît, un supersan qui vous ressemble — mariez-les librement et créez un ensemble qui n'appartient qu'à vous.</p>
+    <div class="builder-pair">
+      <div class="builder-piece"><b>Chemise</b>Lin ivoire</div>
+      <div class="builder-plus">+</div>
+      <div class="builder-piece"><b>Supersan</b>Lin bordeaux</div>
+    </div>
+  </section>
+
+  <section class="product-demo">
+    <div class="section-head">
+      <div class="eyebrow">Fiche produit</div>
+      <h2>Aperçu d'article</h2>
+    </div>
+    <div class="product-card">
+      <div class="product-main-photo">
+        photo article — grand format
+        <div class="dots">
+          <span class="active"></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="thumb-row">
+        <div class="thumb active"></div>
+        <div class="thumb"></div>
+        <div class="thumb"></div>
+        <div class="thumb"></div>
+      </div>
+      <div class="product-info">
+        <h3>Chemise en lin, col mao</h3>
+        <div class="desc">Coupe droite, manches longues — pièce casual ou dîner</div>
+        <div class="price-row">
+          <span class="price" id="demoPrice" data-fcfa="45000">45 000 FCFA</span>
+          <select class="currency-select" id="demoCurrency">
+            <option value="FCFA">FCFA</option>
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+        <div class="swatches">
+          <div class="swatch active" style="background:#7C2333"></div>
+          <div class="swatch" style="background:#1B1714"></div>
+          <div class="swatch" style="background:#C9A876"></div>
+          <div class="swatch" style="background:#EFE9DE; border:1px solid var(--line);"></div>
+        </div>
+        <button class="mix-btn">Assortir avec un supersan →</button>
+      </div>
+      <div class="related-row">
+        <div><div class="grid-photo"></div><span>Chemise lin ivoire</span></div>
+        <div><div class="grid-photo"></div><span>Supersan bordeaux</span></div>
+        <div><div class="grid-photo"></div><span>Ensemble cérémonie</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <a href="#" class="logo-wordmark">Henefen</a>
+    <div class="footer-tagline">Made in Senegal</div>
+    <svg class="squiggle" viewBox="0 0 64 12" style="margin:14px auto 0;">
+      <path d="M2 6 C 12 -2, 18 14, 28 6 S 44 -2, 54 6 S 60 10, 62 6" stroke="#C9A876"/>
+    </svg>
+    <div class="social-row" id="footer-social">
+      <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V8c0-.9.25-1.5 1.55-1.5H17V3.7C16.6 3.65 15.6 3.5 14.4 3.5c-2.5 0-4.2 1.5-4.2 4.3v2.1H7.5V13H10.2v8h3.3z"/></svg></a>
+      <a href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.2 0-.3 0-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2 1 2.4c.1.2 1.6 2.5 4 3.4.6.2 1 .4 1.3.5.6.2 1.1.1 1.5-.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.5-.3z"/></svg></a>
+      <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2c.4 2.2 1.8 3.7 4 4v3c-1.4 0-2.7-.4-4-1.2v6.4a5.9 5.9 0 11-5.1-5.8v3.1a2.8 2.8 0 102 2.7V2h3.1z"/></svg></a>
+      <a href="#" aria-label="Pinterest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.6 19.3c0-.8 0-1.8.2-2.6l1.4-6s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.7 1.5 1.6 0 1-.6 2.5-1 3.9-.2 1.1.6 2 1.7 2 2 0 3.5-2.1 3.5-5.2 0-2.7-2-4.6-4.7-4.6-3.2 0-5.1 2.4-5.1 4.9 0 1 .4 2 .8 2.6.1.1.1.2.1.3l-.3 1.4c0 .2-.2.3-.4.2-1.4-.6-2.2-2.6-2.2-4.2 0-3.4 2.5-6.6 7.1-6.6 3.7 0 6.6 2.7 6.6 6.2 0 3.7-2.3 6.7-5.6 6.7-1.1 0-2.1-.6-2.5-1.2l-.7 2.6c-.2 1-.9 2.2-1.3 2.9A10 10 0 1012 2z"/></svg></a>
+      <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3.1 0 4.1.1 1 0 1.7.2 2.3.5.6.2 1.1.5 1.6 1 .5.5.8 1 1 1.6.3.6.5 1.3.5 2.3.1 1 .1 1.4.1 4.1s0 3.1-.1 4.1c0 1-.2 1.7-.5 2.3-.2.6-.5 1.1-1 1.6-.5.5-1 .8-1.6 1-.6.3-1.3.5-2.3.5-1 .1-1.4.1-4.1.1s-3.1 0-4.1-.1c-1 0-1.7-.2-2.3-.5-.6-.2-1.1-.5-1.6-1-.5-.5-.8-1-1-1.6-.3-.6-.5-1.3-.5-2.3C2 15.1 2 14.7 2 12s0-3.1.1-4.1c0-1 .2-1.7.5-2.3.2-.6.5-1.1 1-1.6.5-.5 1-.8 1.6-1 .6-.3 1.3-.5 2.3-.5C8.9 2 9.3 2 12 2zm0 5a5 5 0 100 10 5 5 0 000-10zm0 8.2a3.2 3.2 0 110-6.4 3.2 3.2 0 010 6.4zm5.2-8.4a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4z"/></svg></a>
+    </div>
+    <div class="footer-contact">WhatsApp / +221 77 205 95 25</div>
+    <div class="footer-contact">Dakar, Sénégal</div>
+    <div class="footer-legal">© 2026 Henefen — Made in Senegal</div>
+  </footer>
+
+  <div class="burger-menu" id="burgerMenu">
+    <div class="burger-panel">
+      <button class="burger-close" id="burgerClose">×</button>
+      <a href="/boutique/">Collection</a>
+      <a href="/boutique/?category=casual">Casual</a>
+      <a href="/boutique/?category=diner">Dîner</a>
+      <a href="/boutique/?category=ceremonie">Cérémonie</a>
+      <a href="/boutique/?category=traditionnel">Tenue traditionnelle</a>
+      <a href="/#composer">Composer un ensemble</a>
+      <a href="/compte/">Mon compte</a>
+      <a href="/#footer-social">Nous suivre</a>
+      <div class="burger-note">Marque 100% sénégalaise — vente en ligne, livraison Dakar et diaspora.</div>
+    </div>
+  </div>
+
+<script>
+  const track = document.getElementById('marqueeTrack');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const pauseIcon = document.getElementById('pauseIcon');
+  let paused = false;
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    track.classList.toggle('paused', paused);
+    pauseIcon.innerHTML = paused
+      ? '<path d="M6 5l13 7-13 7V5z"/>'
+      : '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>';
+  });
+
+  const burgerBtn = document.getElementById('burgerBtn');
+  const burgerMenu = document.getElementById('burgerMenu');
+  const burgerClose = document.getElementById('burgerClose');
+  burgerBtn.addEventListener('click', () => burgerMenu.classList.add('open'));
+  burgerClose.addEventListener('click', () => burgerMenu.classList.remove('open'));
+  burgerMenu.addEventListener('click', (e) => { if (e.target === burgerMenu) burgerMenu.classList.remove('open'); });
+
+  document.querySelectorAll('.thumb').forEach((t, i) => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.thumb').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.querySelectorAll('.dots span').forEach((d, di) => d.classList.toggle('active', di === i));
+    });
+  });
+  document.querySelectorAll('.swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      document.querySelectorAll('.swatch').forEach(x => x.classList.remove('active'));
+      s.classList.add('active');
+    });
+  });
+
+  // Conversion de devise — taux fixes indicatifs (à ajuster depuis l'admin une fois construit)
+  const FX_RATES = { FCFA: 1, EUR: 1/655.96, USD: 1/605, GBP: 1/770 };
+  const FX_SYMBOL = { FCFA: 'FCFA', EUR: '€', USD: '$', GBP: '£' };
+  const demoPrice = document.getElementById('demoPrice');
+  const demoCurrency = document.getElementById('demoCurrency');
+  if (demoPrice && demoCurrency) {
+    demoCurrency.addEventListener('change', () => {
+      const fcfa = Number(demoPrice.dataset.fcfa);
+      const cur = demoCurrency.value;
+      const converted = fcfa * FX_RATES[cur];
+      const formatted = cur === 'FCFA'
+        ? Math.round(converted).toLocaleString('fr-FR') + ' FCFA'
+        : converted.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + FX_SYMBOL[cur];
+      demoPrice.textContent = formatted;
+    });
+  }
+</script>
+</body>
+</html>
