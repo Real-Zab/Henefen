@@ -68,6 +68,8 @@ export default {
         for (const p of products) {
           const { results: colors } = await env.DB.prepare('SELECT color_name, hex FROM product_colors WHERE product_id = ? ORDER BY sort_order').bind(p.id).all();
           p.colors = colors;
+          const photo = await env.DB.prepare('SELECT key FROM photos WHERE target_type = ? AND target_id = ? ORDER BY sort_order LIMIT 1').bind('product', p.id).first();
+          p.photo_url = photo ? `/api/photos/${photo.key}` : null;
         }
         return json({ products });
       }
@@ -192,6 +194,82 @@ export default {
         for (const [key, value] of Object.entries(updates)) {
           await env.DB.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(key, String(value)).run();
         }
+        return json({ ok: true });
+      }
+
+      // ---------- Public: photo d'accueil actuelle ----------
+      if (path === '/api/hero-photo' && method === 'GET') {
+        const photo = await env.DB.prepare('SELECT key FROM photos WHERE target_type = ? ORDER BY sort_order LIMIT 1').bind('hero').first();
+        return json({ url: photo ? `/api/photos/${photo.key}` : null });
+      }
+
+      // ---------- Public: sert le fichier image depuis R2 ----------
+      if (path.startsWith('/api/photos/') && method === 'GET') {
+        const key = decodeURIComponent(path.replace('/api/photos/', ''));
+        const object = await env.PHOTOS.get(key);
+        if (!object) return new Response('Introuvable', { status: 404 });
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set('etag', object.httpEtag);
+        headers.set('Cache-Control', 'public, max-age=31536000');
+        return new Response(object.body, { headers });
+      }
+
+      // ---------- Admin: liste des photos (avec filtre optionnel) ----------
+      if (path === '/api/admin/photos' && method === 'GET') {
+        const admin = await requireAdmin(request, env);
+        if (!admin) return json({ error: 'Non autorisé' }, 401);
+        const targetType = url.searchParams.get('target_type');
+        const targetId = url.searchParams.get('target_id');
+        let q = 'SELECT * FROM photos';
+        const conds = [];
+        const params = [];
+        if (targetType) { conds.push('target_type = ?'); params.push(targetType); }
+        if (targetId) { conds.push('target_id = ?'); params.push(targetId); }
+        if (conds.length) q += ' WHERE ' + conds.join(' AND ');
+        q += ' ORDER BY sort_order';
+        const { results } = await env.DB.prepare(q).bind(...params).all();
+        return json({ photos: results.map(p => ({ ...p, url: `/api/photos/${p.key}` })) });
+      }
+
+      // ---------- Admin: upload d'une photo (vers R2 + référence en base) ----------
+      if (path === '/api/admin/photos' && method === 'POST') {
+        const admin = await requireAdmin(request, env);
+        if (!admin) return json({ error: 'Non autorisé' }, 401);
+        const form = await request.formData();
+        const file = form.get('file');
+        const targetType = form.get('target_type');
+        const targetId = form.get('target_id') || null;
+        if (!file || !targetType) return json({ error: 'Fichier et target_type requis' }, 400);
+        if (!['hero', 'product'].includes(targetType)) return json({ error: 'target_type invalide' }, 400);
+
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const key = `${targetType}/${targetId || 'accueil'}/${Date.now().toString(36)}.${ext}`;
+        await env.PHOTOS.put(key, await file.arrayBuffer(), {
+          httpMetadata: { contentType: file.type || 'image/jpeg' }
+        });
+
+        // Pour la photo d'accueil : une seule à la fois — on retire les précédentes
+        if (targetType === 'hero') {
+          const { results: old } = await env.DB.prepare('SELECT key FROM photos WHERE target_type = ?').bind('hero').all();
+          for (const o of old) { await env.PHOTOS.delete(o.key); }
+          await env.DB.prepare('DELETE FROM photos WHERE target_type = ?').bind('hero').run();
+        }
+
+        await env.DB.prepare('INSERT INTO photos (key, target_type, target_id) VALUES (?, ?, ?)')
+          .bind(key, targetType, targetId).run();
+
+        return json({ ok: true, key, url: `/api/photos/${key}` });
+      }
+
+      // ---------- Admin: suppression d'une photo ----------
+      if (path === '/api/admin/photos' && method === 'DELETE') {
+        const admin = await requireAdmin(request, env);
+        if (!admin) return json({ error: 'Non autorisé' }, 401);
+        const key = url.searchParams.get('key');
+        if (!key) return json({ error: 'key requis' }, 400);
+        await env.PHOTOS.delete(key);
+        await env.DB.prepare('DELETE FROM photos WHERE key = ?').bind(key).run();
         return json({ ok: true });
       }
 

@@ -39,5 +39,22 @@ Si ton Worker "henefen" est déjà connecté à ce dépôt GitHub, un nouveau d�
 - `tonsite.workers.dev/boutique/` — les 2 articles de démo doivent s'afficher
 - `tonsite.workers.dev/admin/` — connexion avec `admin@henefen.sn` / `Henefen2026!`, **change ce mot de passe rapidement**
 
+### 8. Créer le bucket R2 (pour les photos)
+1. Dashboard Cloudflare > **R2 Object Storage** (dans "Storage & databases" ou via la recherche rapide, comme pour D1) > **Create bucket**.
+2. Nom : `henefen-photos` (exactement ce nom, il est déjà référencé dans `wrangler.jsonc`).
+3. Après redéploiement (le fichier `wrangler.jsonc` du zip contient déjà la liaison), va dans ton Worker > **Bindings** > vérifie que `PHOTOS` apparaît lié à `henefen-photos`. Si ce n'est pas automatique, ajoute-le manuellement comme tu l'as fait pour D1 (Add binding > R2 bucket > nom `PHOTOS` > sélectionne `henefen-photos`).
+4. Exécute la nouvelle table `photos` dans la Console D1 (juste ce petit bloc, pas tout le schema) :
+```
+CREATE TABLE IF NOT EXISTS photos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL UNIQUE,
+  target_type TEXT NOT NULL CHECK (target_type IN ('hero','product')),
+  target_id INTEGER,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+```
+5. Va dans `/admin/`, onglet **Photos** : dépose une photo d'accueil, ou choisis un article et ajoute-lui une photo.
+
 ## Prochaine étape
 Produit, panier, compte — même logique, ajoutées directement dans `src/index.js`.

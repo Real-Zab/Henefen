@@ -513,7 +513,7 @@
     </div>
   </nav>
 
-  <section class="hero">
+  <section class="hero" id="heroSection">
     <div class="hero-content">
       <div class="eyebrow">100% Homme — 100% Sénégal</div>
       <h1>Le vestiaire<br>made in Sénégal</h1>
@@ -721,6 +721,16 @@
       demoPrice.textContent = formatted;
     });
   }
+
+  // Photo d'accueil uploadée depuis l'admin, si elle existe
+  fetch('/api/hero-photo').then(r => r.json()).then(data => {
+    if (data.url) {
+      const hero = document.getElementById('heroSection');
+      hero.style.backgroundImage = `linear-gradient(0deg, rgba(27,23,20,0.6), rgba(27,23,20,0.15) 45%), url('${data.url}')`;
+      hero.style.backgroundSize = 'cover';
+      hero.style.backgroundPosition = 'center';
+    }
+  }).catch(() => {});
 </script>
 </body>
 </html>

@@ -521,8 +521,9 @@
       card.className = 'grid-card';
       card.href = `/produit/?slug=${p.slug}`;
       const colorDots = (p.colors || []).map(c => `<span style="background:${c.hex}"></span>`).join('');
+      const photoStyle = p.photo_url ? `style="background-image:url('${p.photo_url}'); background-size:cover; background-position:center;"` : '';
       card.innerHTML = `
-        <div class="grid-photo"></div>
+        <div class="grid-photo" ${photoStyle}></div>
         <h4>${p.name}</h4>
         <div class="price">${p.price_fcfa.toLocaleString('fr-FR')} FCFA</div>
         <div class="grid-colors">${colorDots}</div>

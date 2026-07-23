@@ -75,6 +75,7 @@
       <button class="tab active" data-tab="products">Produits</button>
       <button class="tab" data-tab="categories">Catégories</button>
       <button class="tab" data-tab="currency">Devises</button>
+      <button class="tab" data-tab="photos">Photos</button>
     </div>
 
     <div class="panel active" id="panel-products">
@@ -131,8 +132,31 @@
         <div class="msg" id="currencyMsg"></div>
       </form>
     </div>
+
+    <div class="panel" id="panel-photos">
+      <h2 style="font-size:18px; margin-bottom:14px;">Photo d'accueil</h2>
+      <p style="font-size:12.5px; color:rgba(27,23,20,0.6); margin-bottom:10px;">Cette photo remplace le fond de la page d'accueil. En déposer une nouvelle remplace automatiquement l'ancienne.</p>
+      <div id="heroPhotoPreview" style="margin-bottom:10px;"></div>
+      <input type="file" id="heroPhotoInput" accept="image/*" style="margin-bottom:10px;">
+      <button class="small-btn" id="uploadHeroBtn">Enregistrer la photo d'accueil</button>
+      <div class="msg" id="heroPhotoMsg"></div>
+
+      <h2 style="font-size:18px; margin:28px 0 14px;">Photos par article</h2>
+      <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6);">Choisir un article</label>
+      <select id="productPhotoSelect" style="width:100%; padding:10px; border:1px solid var(--line); margin:6px 0 12px; font-size:14px;"></select>
+      <div id="productPhotoGrid" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;"></div>
+      <input type="file" id="productPhotoInput" accept="image/*" style="margin-bottom:10px;">
+      <button class="small-btn" id="uploadProductPhotoBtn">Ajouter cette photo à l'article</button>
+      <div class="msg" id="productPhotoMsg"></div>
+    </div>
   </div>
 </main>
+
+<style>
+  .photo-thumb{ position:relative; width:90px; }
+  .photo-thumb img{ width:90px; height:112px; object-fit:cover; display:block; border:1px solid var(--line); }
+  .photo-thumb button{ position:absolute; top:-6px; right:-6px; background:var(--bordeaux); color:#fff; border:none; width:20px; height:20px; border-radius:50%; cursor:pointer; font-size:12px; line-height:1; }
+</style>
 
 <script>
   const loginScreen = document.getElementById('loginScreen');
@@ -181,6 +205,8 @@
     loadProducts();
     loadCategories();
     loadSettings();
+    loadHeroPhoto();
+    loadProductSelect();
   }
 
   // Tabs
@@ -347,6 +373,104 @@
       msg.textContent = 'Taux enregistrés.'; msg.className = 'msg ok';
     } catch (e) {
       msg.textContent = 'Erreur lors de l\'enregistrement.'; msg.className = 'msg error';
+    }
+  });
+
+  // Photo d'accueil
+  async function loadHeroPhoto() {
+    const preview = document.getElementById('heroPhotoPreview');
+    try {
+      const res = await fetch('/api/admin/photos?target_type=hero');
+      const data = await res.json();
+      if (data.photos && data.photos.length) {
+        preview.innerHTML = `<img src="${data.photos[0].url}" style="max-width:220px; display:block; border:1px solid var(--line);">`;
+      } else {
+        preview.innerHTML = '<span style="font-size:12.5px; color:rgba(27,23,20,0.5);">Aucune photo d\'accueil pour l\'instant.</span>';
+      }
+    } catch (e) { preview.innerHTML = ''; }
+  }
+
+  document.getElementById('uploadHeroBtn').addEventListener('click', async () => {
+    const input = document.getElementById('heroPhotoInput');
+    const msg = document.getElementById('heroPhotoMsg');
+    if (!input.files[0]) { msg.textContent = 'Choisis une photo d\'abord.'; msg.className = 'msg error'; return; }
+    const form = new FormData();
+    form.append('file', input.files[0]);
+    form.append('target_type', 'hero');
+    try {
+      const res = await fetch('/api/admin/photos', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      msg.textContent = 'Photo d\'accueil enregistrée.'; msg.className = 'msg ok';
+      input.value = '';
+      loadHeroPhoto();
+    } catch (err) {
+      msg.textContent = 'Erreur : ' + err.message; msg.className = 'msg error';
+    }
+  });
+
+  // Photos par article
+  async function loadProductSelect() {
+    const select = document.getElementById('productPhotoSelect');
+    try {
+      const res = await fetch('/api/admin/products');
+      const data = await res.json();
+      select.innerHTML = data.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      loadProductPhotos();
+    } catch (e) {}
+  }
+
+  document.getElementById('productPhotoSelect').addEventListener('change', loadProductPhotos);
+
+  async function loadProductPhotos() {
+    const select = document.getElementById('productPhotoSelect');
+    const grid = document.getElementById('productPhotoGrid');
+    const id = select.value;
+    if (!id) { grid.innerHTML = ''; return; }
+    grid.innerHTML = 'Chargement…';
+    try {
+      const res = await fetch(`/api/admin/photos?target_type=product&target_id=${id}`);
+      const data = await res.json();
+      grid.innerHTML = '';
+      data.photos.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'photo-thumb';
+        div.innerHTML = `<img src="${p.url}"><button data-key="${p.key}">✕</button>`;
+        grid.appendChild(div);
+      });
+      if (!data.photos.length) grid.innerHTML = '<span style="font-size:12.5px; color:rgba(27,23,20,0.5);">Aucune photo pour cet article.</span>';
+    } catch (e) {
+      grid.innerHTML = '<span class="msg error">Erreur de chargement.</span>';
+    }
+  }
+
+  document.getElementById('productPhotoGrid').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-key]');
+    if (!btn) return;
+    if (!confirm('Supprimer cette photo ?')) return;
+    await fetch('/api/admin/photos?key=' + encodeURIComponent(btn.dataset.key), { method: 'DELETE' });
+    loadProductPhotos();
+  });
+
+  document.getElementById('uploadProductPhotoBtn').addEventListener('click', async () => {
+    const select = document.getElementById('productPhotoSelect');
+    const input = document.getElementById('productPhotoInput');
+    const msg = document.getElementById('productPhotoMsg');
+    if (!select.value) { msg.textContent = 'Choisis un article.'; msg.className = 'msg error'; return; }
+    if (!input.files[0]) { msg.textContent = 'Choisis une photo.'; msg.className = 'msg error'; return; }
+    const form = new FormData();
+    form.append('file', input.files[0]);
+    form.append('target_type', 'product');
+    form.append('target_id', select.value);
+    try {
+      const res = await fetch('/api/admin/photos', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      msg.textContent = 'Photo ajoutée.'; msg.className = 'msg ok';
+      input.value = '';
+      loadProductPhotos();
+    } catch (err) {
+      msg.textContent = 'Erreur : ' + err.message; msg.className = 'msg error';
     }
   });
 
