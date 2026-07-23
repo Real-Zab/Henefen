@@ -247,7 +247,7 @@
   }
   .builder .eyebrow{ color:var(--sand); }
   .builder h2{ font-size:24px; margin:8px 0 14px; color:var(--ivory); }
-  .builder p{ font-size:14px; line-height:1.6; color:rgba(246,242,234,0.75); max-width:30ch; margin-bottom:24px;}
+  .builder p{ font-size:14px; line-height:1.6; color:rgba(246,242,234,0.75); max-width:26ch; margin:0 auto 24px; text-align:center;}
   .builder-pair{
     display:flex;
     gap:10px;
@@ -270,6 +270,8 @@
 
   /* ---------- Product card demo ---------- */
   .product-demo{ padding:56px 22px 64px; }
+  .product-demo-layout{ display:block; }
+  .flank-card{ display:none; }
   .product-card{
     max-width:400px;
     margin:0 auto;
@@ -429,11 +431,18 @@
     .hero-content{ max-width:620px; margin:0; padding-left:64px; padding-right:48px; }
     .section{ max-width:1200px; margin:0 auto; padding:72px 48px; }
     .cat-grid{ grid-template-columns:repeat(4, 1fr); gap:18px; }
-    .cat-tile{ aspect-ratio:2/3; }
+    .cat-tile{ aspect-ratio:auto; height:380px; }
     .builder{ padding:72px 0; }
     .builder > *{ max-width:1200px; margin-left:auto; margin-right:auto; padding-left:48px; padding-right:48px; }
     .builder-pair{ max-width:520px; }
     .product-demo{ max-width:1200px; margin:0 auto; padding:72px 48px 90px; }
+    .product-demo-layout{ display:flex; align-items:flex-start; justify-content:center; gap:32px; }
+    .flank-card{ display:block; }
+    .product-demo-layout .product-card{ max-width:400px; flex-shrink:0; }
+    .flank-card{ flex:1; max-width:260px; padding-top:56px; }
+    .flank-card .grid-photo{ aspect-ratio:3/4; background:linear-gradient(150deg,#efe6d4,#C9A876 60%,#8f7248); margin-bottom:8px; }
+    .flank-card h4{ font-size:13px; font-weight:500; margin-bottom:2px; }
+    .flank-card .price{ font-size:12.5px; color:rgba(27,23,20,0.6); font-family:'Inter', sans-serif; }
     footer{ padding:64px 48px 36px; }
   }
   @media (min-width:1400px){
@@ -536,6 +545,12 @@
       <div class="eyebrow">Fiche produit</div>
       <h2>Aperçu d'article</h2>
     </div>
+    <div class="product-demo-layout">
+    <div class="flank-card">
+      <div class="grid-photo"></div>
+      <h4>Ensemble dîner bordeaux</h4>
+      <span class="price">52 000 FCFA</span>
+    </div>
     <div class="product-card">
       <div class="product-main-photo">
         photo article — grand format
@@ -574,6 +589,12 @@
         <div><div class="grid-photo"></div><span>Supersan bordeaux</span></div>
         <div><div class="grid-photo"></div><span>Ensemble cérémonie</span></div>
       </div>
+    </div>
+    <div class="flank-card">
+      <div class="grid-photo"></div>
+      <h4>Supersan lin sable</h4>
+      <span class="price">38 000 FCFA</span>
+    </div>
     </div>
   </section>
 
