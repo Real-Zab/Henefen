@@ -111,6 +111,19 @@
         <div class="msg" id="productMsg"></div>
       </form>
 
+      <h2 style="font-size:18px; margin-bottom:14px;">Vitrine accueil ("Aperçu d'article")</h2>
+      <p style="font-size:12.5px; color:rgba(27,23,20,0.6); margin-bottom:10px;">Choisis quel article s'affiche dans chacun des 3 emplacements de l'accueil. Laisse sur "Automatique" pour que le plus récent s'affiche tout seul.</p>
+      <form class="stacked" id="showcaseForm">
+        <label>Emplacement 1 (gauche)</label>
+        <select id="showcase1"></select>
+        <label>Emplacement 2 (centre)</label>
+        <select id="showcase2"></select>
+        <label>Emplacement 3 (droite)</label>
+        <select id="showcase3"></select>
+        <button type="submit">Enregistrer la vitrine</button>
+        <div class="msg" id="showcaseMsg"></div>
+      </form>
+
       <h2 style="font-size:18px; margin-bottom:14px;">Catalogue</h2>
       <div id="productList"></div>
     </div>
@@ -253,6 +266,7 @@
     loadSocialLinks();
     loadHeroPhoto();
     loadProductSelect();
+    loadShowcase();
   }
 
   // Tabs
@@ -603,6 +617,42 @@
   }
 
   document.getElementById('productPhotoSelect').addEventListener('change', loadProductPhotos);
+
+  // Vitrine accueil : quel article dans chacun des 3 emplacements "Aperçu d'article"
+  async function loadShowcase() {
+    try {
+      const [productsRes, settingsRes] = await Promise.all([
+        fetch('/api/admin/products'), fetch('/api/admin/settings')
+      ]);
+      const products = (await productsRes.json()).products;
+      const settings = (await settingsRes.json()).settings;
+      const optionsHtml = '<option value="">Automatique (le plus récent)</option>' +
+        products.map(p => `<option value="${p.slug}">${p.name}</option>`).join('');
+      ['showcase1', 'showcase2', 'showcase3'].forEach((id, i) => {
+        const select = document.getElementById(id);
+        select.innerHTML = optionsHtml;
+        select.value = settings['home_preview_' + (i + 1)] || '';
+      });
+    } catch (e) {}
+  }
+
+  document.getElementById('showcaseForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('showcaseMsg');
+    try {
+      await fetch('/api/admin/settings', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          home_preview_1: document.getElementById('showcase1').value,
+          home_preview_2: document.getElementById('showcase2').value,
+          home_preview_3: document.getElementById('showcase3').value
+        })
+      });
+      msg.textContent = 'Vitrine enregistrée.'; msg.className = 'msg ok';
+    } catch (err) {
+      msg.textContent = 'Erreur lors de l\'enregistrement.'; msg.className = 'msg error';
+    }
+  });
 
   async function loadProductPhotos() {
     const select = document.getElementById('productPhotoSelect');

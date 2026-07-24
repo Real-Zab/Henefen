@@ -739,9 +739,30 @@
     });
   }).catch(() => {});
 
-  // Aperçu produit : 3 vrais articles les plus récents, avec galerie de vignettes interactive
-  fetch('/api/products').then(r => r.json()).then(async (data) => {
-    const products = (data.products || []).slice(0, 3);
+  // Aperçu produit : 3 emplacements — article choisi dans l'admin (vitrine), sinon le plus récent disponible
+  Promise.all([
+    fetch('/api/products').then(r => r.json()),
+    fetch('/api/settings').then(r => r.json())
+  ]).then(async ([data, settingsData]) => {
+    const settings = settingsData.settings || {};
+    const autoPool = (data.products || []).slice();
+    const chosenSlugs = [1, 2, 3].map(n => settings['home_preview_' + n]).filter(Boolean);
+    const usedSlugs = new Set();
+    const products = [];
+
+    for (let n = 1; n <= 3; n++) {
+      const slug = settings['home_preview_' + n];
+      if (slug) {
+        let product = autoPool.find(p => p.slug === slug);
+        if (!product) {
+          try { product = (await (await fetch(`/api/products/${encodeURIComponent(slug)}`)).json()).product; } catch (e) {}
+        }
+        if (product) { products.push(product); usedSlugs.add(slug); continue; }
+      }
+      const next = autoPool.find(p => !usedSlugs.has(p.slug) && !chosenSlugs.includes(p.slug));
+      if (next) { products.push(next); usedSlugs.add(next.slug); }
+    }
+
     const cards = document.querySelectorAll('.product-demo-layout .product-card');
 
     for (let i = 0; i < products.length; i++) {
