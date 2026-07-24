@@ -37,6 +37,11 @@ async function requireAdmin(request, env) {
   return await verifyToken(token, env.ADMIN_SESSION_SECRET);
 }
 
+async function requireUser(request, env) {
+  const token = getCookie(request, 'henefen_user');
+  return await verifyToken(token, env.ADMIN_SESSION_SECRET);
+}
+
 function slugify(name) {
   return name.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -81,7 +86,7 @@ export default {
         const slug = decodeURIComponent(path.replace('/api/products/', ''));
         const product = await env.DB.prepare('SELECT * FROM products WHERE slug = ? AND active = 1').bind(slug).first();
         if (!product) return json({ error: 'Introuvable' }, 404);
-        const { results: colors } = await env.DB.prepare('SELECT color_name, hex FROM product_colors WHERE product_id = ? ORDER BY sort_order').bind(product.id).all();
+        const { results: colors } = await env.DB.prepare('SELECT id, color_name, hex FROM product_colors WHERE product_id = ? ORDER BY sort_order').bind(product.id).all();
         const { results: photoRows } = await env.DB.prepare('SELECT key FROM photos WHERE target_type = ? AND target_id = ? ORDER BY sort_order').bind('product', product.id).all();
         product.colors = colors;
         product.photos = photoRows.map(p => `/api/photos/${p.key}`);
@@ -299,6 +304,85 @@ export default {
         await env.PHOTOS.delete(key);
         await env.DB.prepare('DELETE FROM photos WHERE key = ?').bind(key).run();
         return json({ ok: true });
+      }
+
+      // ---------- Client: inscription ----------
+      if (path === '/api/auth/register' && method === 'POST') {
+        const { phone, email, password, name } = await request.json();
+        if (!phone || !email || !password) return json({ error: 'Téléphone, email et mot de passe requis' }, 400);
+        const existingPhone = await env.DB.prepare('SELECT id FROM users WHERE phone = ?').bind(phone).first();
+        if (existingPhone) return json({ error: 'Ce numéro est déjà utilisé' }, 400);
+        const existingEmail = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
+        if (existingEmail) return json({ error: 'Cet email est déjà utilisé' }, 400);
+        const hash = await hashPassword(password);
+        const result = await env.DB.prepare('INSERT INTO users (email, password_hash, name, phone) VALUES (?, ?, ?, ?)')
+          .bind(email, hash, name || '', phone).run();
+        const userId = result.meta.last_row_id;
+        const token = await signToken({ userId, phone, exp: Date.now() + 1000 * 60 * 60 * 24 * 30 }, env.ADMIN_SESSION_SECRET);
+        return json({ ok: true }, 200, {
+          'Set-Cookie': `henefen_user=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=2592000`
+        });
+      }
+
+      // ---------- Client: connexion ----------
+      if (path === '/api/auth/login' && method === 'POST') {
+        const { phone, password } = await request.json();
+        if (!phone || !password) return json({ error: 'Téléphone et mot de passe requis' }, 400);
+        const user = await env.DB.prepare('SELECT * FROM users WHERE phone = ?').bind(phone).first();
+        if (!user) return json({ error: 'Identifiants incorrects' }, 401);
+        const hash = await hashPassword(password);
+        if (hash !== user.password_hash) return json({ error: 'Identifiants incorrects' }, 401);
+        const token = await signToken({ userId: user.id, phone: user.phone, exp: Date.now() + 1000 * 60 * 60 * 24 * 30 }, env.ADMIN_SESSION_SECRET);
+        return json({ ok: true }, 200, {
+          'Set-Cookie': `henefen_user=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=2592000`
+        });
+      }
+
+      // ---------- Client: déconnexion ----------
+      if (path === '/api/auth/logout' && method === 'POST') {
+        return json({ ok: true }, 200, {
+          'Set-Cookie': `henefen_user=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`
+        });
+      }
+
+      // ---------- Client: mon compte ----------
+      if (path === '/api/auth/me' && method === 'GET') {
+        const session = await requireUser(request, env);
+        if (!session) return json({ authenticated: false }, 401);
+        const user = await env.DB.prepare('SELECT id, name, email, phone, created_at FROM users WHERE id = ?').bind(session.userId).first();
+        if (!user) return json({ authenticated: false }, 401);
+        return json({ authenticated: true, user });
+      }
+
+      // ---------- Client: passer une commande ----------
+      if (path === '/api/orders' && method === 'POST') {
+        const session = await requireUser(request, env);
+        if (!session) return json({ error: 'Connexion requise' }, 401);
+        const { items, display_currency } = await request.json();
+        if (!Array.isArray(items) || !items.length) return json({ error: 'Panier vide' }, 400);
+        const total = items.reduce((sum, it) => sum + (it.unit_price_fcfa * (it.quantity || 1)), 0);
+        const order = await env.DB.prepare('INSERT INTO orders (user_id, total_fcfa, display_currency) VALUES (?, ?, ?)')
+          .bind(session.userId, total, display_currency || 'FCFA').run();
+        const orderId = order.meta.last_row_id;
+        for (const it of items) {
+          await env.DB.prepare('INSERT INTO order_items (order_id, product_id, color_id, quantity, unit_price_fcfa) VALUES (?, ?, ?, ?, ?)')
+            .bind(orderId, it.product_id, it.color_id || null, it.quantity || 1, it.unit_price_fcfa).run();
+        }
+        return json({ ok: true, order_id: orderId });
+      }
+
+      // ---------- Client: historique de mes commandes ----------
+      if (path === '/api/orders/mine' && method === 'GET') {
+        const session = await requireUser(request, env);
+        if (!session) return json({ error: 'Connexion requise' }, 401);
+        const { results: orders } = await env.DB.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').bind(session.userId).all();
+        for (const o of orders) {
+          const { results: items } = await env.DB.prepare(
+            `SELECT oi.quantity, oi.unit_price_fcfa, p.name, p.slug FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ?`
+          ).bind(o.id).all();
+          o.items = items;
+        }
+        return json({ orders });
       }
 
       // ---------- Tout le reste : fichiers statiques (index.html, boutique/, admin/) ----------

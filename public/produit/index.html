@@ -90,10 +90,30 @@
           </select>
         </div>
         <div class="swatches">${swatches}</div>
+        <button class="mix-btn" id="addToCartBtn" style="margin-bottom:10px; cursor:pointer;">Ajouter au panier</button>
+        <div id="cartMsg" style="font-size:12.5px; margin-bottom:10px;"></div>
         ${p.piece_type === 'chemise' ? '<a href="/boutique/?type=supersan" class="mix-btn">Assortir avec un supersan →</a>' : ''}
         ${p.piece_type === 'supersan' ? '<a href="/boutique/?type=chemise" class="mix-btn">Assortir avec une chemise →</a>' : ''}
       </div>
     `;
+
+    document.getElementById('addToCartBtn').addEventListener('click', () => {
+      const activeColorEl = document.querySelector('.swatch.active');
+      const colorIndex = [...document.querySelectorAll('.swatch')].indexOf(activeColorEl);
+      const color = (p.colors || [])[colorIndex] || null;
+      const cart = JSON.parse(localStorage.getItem('henefen_cart') || '[]');
+      cart.push({
+        product_id: p.id,
+        name: p.name,
+        color_id: color ? color.id : null,
+        color_name: color ? color.color_name : '',
+        unit_price_fcfa: p.price_fcfa,
+        quantity: 1,
+        photo_url: mainPhoto
+      });
+      localStorage.setItem('henefen_cart', JSON.stringify(cart));
+      document.getElementById('cartMsg').innerHTML = 'Ajouté au panier — <a href="/panier/" style="color:var(--bordeaux);">voir le panier →</a>';
+    });
 
     document.querySelectorAll('.thumb').forEach(t => {
       t.addEventListener('click', () => {

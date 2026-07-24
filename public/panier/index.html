@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panier — Henefen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bordeaux:#7C2333; --ivory:#F6F2EA; --ink:#1B1714; --sand:#C9A876; --line:rgba(27,23,20,0.14); }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--ivory); color:var(--ink); font-family:'Inter', sans-serif; }
+  h1{ font-family:'Fraunces', serif; font-weight:500; }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line); }
+  .nav-icon-btn{ background:none; border:none; color:var(--ink); }
+  .logo-wordmark{ font-family:'Fraunces', serif; font-style:italic; font-size:22px; color:var(--bordeaux); text-decoration:none; }
+  .wrap{ padding:24px 22px 60px; max-width:520px; margin:0 auto; }
+  .wrap h1{ font-size:22px; margin-bottom:20px; }
+  .cart-item{ display:flex; gap:12px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .cart-item .photo{ width:64px; height:80px; background-size:cover; background-position:center; background-color:#e7dcc4; flex-shrink:0; }
+  .cart-item .info{ flex:1; }
+  .cart-item h3{ font-size:14px; font-weight:500; margin-bottom:2px; }
+  .cart-item .color{ font-size:12px; color:rgba(27,23,20,0.55); margin-bottom:6px; }
+  .qty-row{ display:flex; align-items:center; gap:10px; }
+  .qty-row button{ width:26px; height:26px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  .remove-btn{ background:none; border:none; color:var(--bordeaux); font-size:11px; text-decoration:underline; cursor:pointer; margin-left:auto; }
+  .cart-item .price{ font-family:'Fraunces', serif; font-size:14px; white-space:nowrap; }
+  .summary{ margin-top:24px; padding-top:16px; border-top:1px solid var(--ink); }
+  .summary-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .summary-row .total{ font-family:'Fraunces', serif; font-size:20px; }
+  .currency-select{ font-size:11px; border:1px solid var(--line); background:transparent; padding:8px 12px; }
+  .checkout-btn{ display:block; width:100%; background:var(--bordeaux); color:var(--ivory); border:none; padding:15px; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-align:center; text-decoration:none; }
+  .state-msg{ padding:60px 22px; text-align:center; color:rgba(27,23,20,0.5); }
+  .msg{ font-size:12.5px; margin-top:10px; }
+  .msg.error{ color:var(--bordeaux); }
+  .msg.ok{ color:#2e6b3e; }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-icon-btn" aria-label="Retour"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <a href="/" class="logo-wordmark">Henefen</a>
+    <span style="width:22px;"></span>
+  </nav>
+
+  <div class="wrap">
+    <h1>Votre panier</h1>
+    <div id="cartContent"></div>
+  </div>
+
+<script>
+  const CART_KEY = 'henefen_cart';
+  const FX_SYMBOL = { FCFA: 'FCFA', EUR: '€', USD: '$', GBP: '£' };
+  let fxRates = { FCFA: 1 };
+  let currentCurrency = 'FCFA';
+
+  function getCart() {
+    try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { return []; }
+  }
+  function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  }
+
+  function convert(fcfa) {
+    const val = fcfa * (fxRates[currentCurrency] || 1);
+    return currentCurrency === 'FCFA'
+      ? Math.round(val).toLocaleString('fr-FR') + ' FCFA'
+      : val.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + FX_SYMBOL[currentCurrency];
+  }
+
+  function render() {
+    const cart = getCart();
+    const content = document.getElementById('cartContent');
+    if (!cart.length) {
+      content.innerHTML = '<div class="state-msg">Votre panier est vide.<br><br><a href="/boutique/" style="color:var(--bordeaux);">Découvrir la collection →</a></div>';
+      return;
+    }
+    const total = cart.reduce((s, it) => s + it.unit_price_fcfa * it.quantity, 0);
+    content.innerHTML = cart.map((it, i) => `
+      <div class="cart-item">
+        <div class="photo" style="${it.photo_url ? `background-image:url('${it.photo_url}')` : ''}"></div>
+        <div class="info">
+          <h3>${it.name}</h3>
+          <div class="color">${it.color_name || ''}</div>
+          <div class="qty-row">
+            <button data-action="dec" data-i="${i}">−</button>
+            <span>${it.quantity}</span>
+            <button data-action="inc" data-i="${i}">+</button>
+            <button class="remove-btn" data-action="remove" data-i="${i}">Retirer</button>
+          </div>
+        </div>
+        <div class="price">${convert(it.unit_price_fcfa * it.quantity)}</div>
+      </div>
+    `).join('') + `
+      <div class="summary">
+        <div class="summary-row">
+          <span>Total</span>
+          <select class="currency-select" id="currencySelect">
+            <option value="FCFA">FCFA</option>
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+        <div class="summary-row"><span></span><span class="total">${convert(total)}</span></div>
+        <button class="checkout-btn" id="checkoutBtn">Valider la commande</button>
+        <div class="msg" id="checkoutMsg"></div>
+      </div>
+    `;
+    document.getElementById('currencySelect').value = currentCurrency;
+    document.getElementById('currencySelect').addEventListener('change', (e) => { currentCurrency = e.target.value; render(); });
+    document.getElementById('checkoutBtn').addEventListener('click', checkout);
+
+    content.querySelectorAll('button[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.i);
+        const cart = getCart();
+        if (btn.dataset.action === 'inc') cart[i].quantity++;
+        if (btn.dataset.action === 'dec') cart[i].quantity = Math.max(1, cart[i].quantity - 1);
+        if (btn.dataset.action === 'remove') cart.splice(i, 1);
+        saveCart(cart);
+        render();
+      });
+    });
+  }
+
+  async function checkout() {
+    const msg = document.getElementById('checkoutMsg');
+    const meRes = await fetch('/api/auth/me');
+    if (!meRes.ok) {
+      window.location.href = '/compte/?next=panier';
+      return;
+    }
+    const cart = getCart();
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: cart, display_currency: currentCurrency })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      localStorage.removeItem(CART_KEY);
+      document.getElementById('cartContent').innerHTML = `<div class="state-msg">Commande enregistrée ! Nous vous contacterons via WhatsApp pour confirmer la livraison.<br><br><a href="/compte/" style="color:var(--bordeaux);">Voir mes commandes →</a></div>`;
+    } catch (err) {
+      msg.textContent = 'Erreur : ' + err.message; msg.className = 'msg error';
+    }
+  }
+
+  fetch('/api/settings').then(r => r.json()).then(data => {
+    fxRates.EUR = parseFloat(data.settings.fx_eur) || 0;
+    fxRates.USD = parseFloat(data.settings.fx_usd) || 0;
+    fxRates.GBP = parseFloat(data.settings.fx_gbp) || 0;
+  }).finally(render);
+</script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon compte — Henefen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bordeaux:#7C2333; --ivory:#F6F2EA; --ink:#1B1714; --sand:#C9A876; --line:rgba(27,23,20,0.14); }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--ivory); color:var(--ink); font-family:'Inter', sans-serif; }
+  h1,h2{ font-family:'Fraunces', serif; font-weight:500; }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line); }
+  .nav-icon-btn{ background:none; border:none; color:var(--ink); }
+  .logo-wordmark{ font-family:'Fraunces', serif; font-style:italic; font-size:22px; color:var(--bordeaux); text-decoration:none; }
+  .wrap{ padding:24px 22px 60px; max-width:420px; margin:0 auto; }
+  .wrap h1{ font-size:22px; margin-bottom:20px; }
+  .tabs{ display:flex; gap:8px; margin-bottom:20px; }
+  .tab{ flex:1; padding:10px; border:1px solid var(--ink); background:transparent; font-size:11.5px; letter-spacing:0.05em; text-transform:uppercase; cursor:pointer; }
+  .tab.active{ background:var(--ink); color:var(--ivory); }
+  form{ display:flex; flex-direction:column; gap:10px; }
+  label{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6); margin-top:4px; }
+  input, select{ padding:12px; border:1px solid var(--line); font-size:14px; background:#fff; }
+  .phone-row{ display:flex; gap:8px; }
+  .phone-row select{ flex:0 0 110px; }
+  .phone-row input{ flex:1; }
+  button[type=submit]{ background:var(--bordeaux); color:var(--ivory); border:none; padding:14px; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; margin-top:8px; }
+  .msg{ font-size:12.5px; padding:8px 0; }
+  .msg.error{ color:var(--bordeaux); }
+  .msg.ok{ color:#2e6b3e; }
+  .account-card{ border:1px solid var(--line); padding:20px; background:#fff; margin-bottom:20px; }
+  .account-card p{ font-size:13.5px; margin-bottom:6px; }
+  .logout-btn{ background:none; border:1px solid var(--ink); padding:10px 16px; font-size:11px; letter-spacing:0.05em; text-transform:uppercase; cursor:pointer; margin-top:10px; }
+  .order-card{ border:1px solid var(--line); padding:14px; margin-bottom:10px; font-size:13px; }
+  .order-card .order-total{ font-family:'Fraunces', serif; font-size:16px; margin-top:6px; }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-icon-btn" aria-label="Retour"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <a href="/" class="logo-wordmark">Henefen</a>
+    <span style="width:22px;"></span>
+  </nav>
+
+  <div class="wrap">
+    <div id="guestView">
+      <h1>Mon compte</h1>
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Se connecter</button>
+        <button class="tab" data-tab="register">Créer un compte</button>
+      </div>
+
+      <form id="loginForm">
+        <label>Indicatif + numéro de téléphone</label>
+        <div class="phone-row">
+          <select id="loginCountryCode"></select>
+          <input type="tel" id="loginPhone" placeholder="77 205 95 25" required>
+        </div>
+        <label>Mot de passe</label>
+        <input type="password" id="loginPassword" required>
+        <button type="submit">Se connecter</button>
+        <div class="msg" id="loginMsg"></div>
+      </form>
+
+      <form id="registerForm" style="display:none;">
+        <label>Nom</label>
+        <input type="text" id="regName">
+        <label>Indicatif + numéro de téléphone</label>
+        <div class="phone-row">
+          <select id="regCountryCode"></select>
+          <input type="tel" id="regPhone" placeholder="77 205 95 25" required>
+        </div>
+        <label>Email — pour récupérer votre compte en cas de mot de passe oublié ou de changement de numéro</label>
+        <input type="email" id="regEmail" required>
+        <label>Mot de passe</label>
+        <input type="password" id="regPassword" required>
+        <button type="submit">Créer mon compte</button>
+        <div class="msg" id="registerMsg"></div>
+      </form>
+    </div>
+
+    <div id="userView" style="display:none;">
+      <h1>Mon compte</h1>
+      <div class="account-card">
+        <p id="accName"></p>
+        <p id="accPhone"></p>
+        <p id="accEmail"></p>
+        <button class="logout-btn" id="logoutBtn">Déconnexion</button>
+      </div>
+      <h2 style="font-size:16px; margin-bottom:12px;">Historique de mes commandes</h2>
+      <div id="ordersList"></div>
+    </div>
+  </div>
+
+<script>
+  const COUNTRY_CODES = [
+    { code: '+221', label: '🇸🇳 +221 Sénégal' },
+    { code: '+33', label: '🇫🇷 +33 France' },
+    { code: '+1', label: '🇺🇸 +1 États-Unis / Canada' },
+    { code: '+44', label: '🇬🇧 +44 Royaume-Uni' },
+    { code: '+225', label: '🇨🇮 +225 Côte d\'Ivoire' },
+    { code: '+223', label: '🇲🇱 +223 Mali' },
+    { code: '+224', label: '🇬🇳 +224 Guinée' },
+    { code: '+212', label: '🇲🇦 +212 Maroc' },
+    { code: '+213', label: '🇩🇿 +213 Algérie' },
+    { code: '+216', label: '🇹🇳 +216 Tunisie' },
+    { code: '+32', label: '🇧🇪 +32 Belgique' },
+    { code: '+34', label: '🇪🇸 +34 Espagne' },
+    { code: '+39', label: '🇮🇹 +39 Italie' },
+    { code: '+49', label: '🇩🇪 +49 Allemagne' },
+  ];
+
+  function fillCountrySelect(select) {
+    select.innerHTML = COUNTRY_CODES.map(c => `<option value="${c.code}">${c.label}</option>`).join('');
+  }
+  fillCountrySelect(document.getElementById('loginCountryCode'));
+  fillCountrySelect(document.getElementById('regCountryCode'));
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('loginForm').style.display = tab.dataset.tab === 'login' ? 'flex' : 'none';
+      document.getElementById('registerForm').style.display = tab.dataset.tab === 'register' ? 'flex' : 'none';
+    });
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('loginMsg');
+    const phone = document.getElementById('loginCountryCode').value + document.getElementById('loginPhone').value.replace(/\s+/g, '');
+    const password = document.getElementById('loginPassword').value;
+    try {
+      const res = await fetch('/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ phone, password }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      window.location.reload();
+    } catch (err) {
+      msg.textContent = err.message; msg.className = 'msg error';
+    }
+  });
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('registerMsg');
+    const phone = document.getElementById('regCountryCode').value + document.getElementById('regPhone').value.replace(/\s+/g, '');
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const name = document.getElementById('regName').value;
+    try {
+      const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ phone, email, password, name }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      window.location.reload();
+    } catch (err) {
+      msg.textContent = err.message; msg.className = 'msg error';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.reload();
+  });
+
+  async function loadOrders() {
+    const list = document.getElementById('ordersList');
+    try {
+      const res = await fetch('/api/orders/mine');
+      const data = await res.json();
+      if (!data.orders || !data.orders.length) { list.innerHTML = '<p style="font-size:13px; color:rgba(27,23,20,0.5);">Aucune commande pour l\'instant.</p>'; return; }
+      list.innerHTML = data.orders.map(o => `
+        <div class="order-card">
+          <div>${new Date(o.created_at).toLocaleDateString('fr-FR')} — ${o.status}</div>
+          ${o.items.map(it => `<div>${it.quantity} × ${it.name}</div>`).join('')}
+          <div class="order-total">${Number(o.total_fcfa).toLocaleString('fr-FR')} FCFA</div>
+        </div>
+      `).join('');
+    } catch (e) {
+      list.innerHTML = '<p class="msg error">Erreur de chargement.</p>';
+    }
+  }
+
+  async function init() {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('guestView').style.display = 'none';
+        document.getElementById('userView').style.display = 'block';
+        document.getElementById('accName').textContent = data.user.name || '—';
+        document.getElementById('accPhone').textContent = data.user.phone;
+        document.getElementById('accEmail').textContent = data.user.email;
+        loadOrders();
+      }
+    } catch (e) {}
+  }
+  init();
+</script>
+</body>
+</html>
