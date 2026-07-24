@@ -392,11 +392,37 @@
             <input type="number" class="e-price" value="${p.price_fcfa}" style="width:100%; padding:8px; border:1px solid var(--line); margin:4px 0 8px;">
             <button type="button" class="small-btn" data-action="save-edit" data-id="${p.id}">Enregistrer les modifications</button>
             <div class="msg e-msg" data-id="${p.id}"></div>
+
+            <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6); display:block; margin-top:16px;">Photos de l'article</label>
+            <div class="e-photo-grid" data-id="${p.id}" style="display:flex; flex-wrap:wrap; gap:10px; margin:8px 0;">Chargement…</div>
+            <input type="file" class="e-photo-input" data-id="${p.id}" accept="image/*" multiple style="margin-bottom:8px;">
+            <button type="button" class="small-btn" data-action="add-photos" data-id="${p.id}">Ajouter ces photos</button>
+            <div class="msg e-photo-msg" data-id="${p.id}"></div>
           </div>`;
         list.appendChild(card);
       });
     } catch (e) {
       list.innerHTML = '<div class="msg error">Impossible de charger le catalogue.</div>';
+    }
+  }
+
+  async function loadEditPhotos(id) {
+    const grid = document.querySelector(`.e-photo-grid[data-id="${id}"]`);
+    if (!grid) return;
+    grid.innerHTML = 'Chargement…';
+    try {
+      const res = await fetch(`/api/admin/photos?target_type=product&target_id=${id}`);
+      const data = await res.json();
+      grid.innerHTML = '';
+      data.photos.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'photo-thumb';
+        div.innerHTML = `<img src="${p.url}"><button data-key="${p.key}" data-id="${id}">✕</button>`;
+        grid.appendChild(div);
+      });
+      if (!data.photos.length) grid.innerHTML = '<span style="font-size:12.5px; color:rgba(27,23,20,0.5);">Aucune photo pour cet article.</span>';
+    } catch (e) {
+      grid.innerHTML = '<span class="msg error">Erreur de chargement.</span>';
     }
   }
 
@@ -406,7 +432,27 @@
     const id = btn.dataset.id;
     if (btn.dataset.action === 'edit') {
       const panel = document.getElementById('edit-' + id);
-      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      const opening = panel.style.display === 'none';
+      panel.style.display = opening ? 'block' : 'none';
+      if (opening) loadEditPhotos(id);
+    } else if (btn.dataset.action === 'add-photos') {
+      const input = document.querySelector(`.e-photo-input[data-id="${id}"]`);
+      const msg = document.querySelector(`.e-photo-msg[data-id="${id}"]`);
+      const files = [...(input.files || [])];
+      if (!files.length) { msg.textContent = 'Choisis au moins une photo.'; msg.className = 'msg error e-photo-msg'; return; }
+      msg.textContent = `Envoi de ${files.length} photo(s)…`; msg.className = 'msg e-photo-msg';
+      try {
+        await uploadMultiplePhotos(files, 'product', id);
+        msg.textContent = 'Photo(s) ajoutée(s).'; msg.className = 'msg ok e-photo-msg';
+        input.value = '';
+        loadEditPhotos(id);
+      } catch (err) {
+        msg.textContent = 'Erreur : ' + err.message; msg.className = 'msg error e-photo-msg';
+      }
+    } else if (btn.matches('.e-photo-grid button[data-key]')) {
+      if (!confirm('Supprimer cette photo ?')) return;
+      await fetch('/api/admin/photos?key=' + encodeURIComponent(btn.dataset.key), { method: 'DELETE' });
+      loadEditPhotos(btn.dataset.id);
     } else if (btn.dataset.action === 'save-edit') {
       const panel = document.getElementById('edit-' + id);
       const msg = panel.querySelector('.e-msg');
