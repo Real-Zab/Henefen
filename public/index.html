@@ -306,6 +306,7 @@
 
   .thumb-row{
     display:flex;
+    justify-content:center;
     gap:8px;
     margin-top:8px;
     overflow-x:auto;
@@ -315,6 +316,8 @@
     flex:0 0 56px;
     aspect-ratio:3/4;
     background:linear-gradient(150deg,#e7dcc4,#b89a6a);
+    background-size:cover;
+    background-position:center;
     cursor:pointer;
     border:2px solid transparent;
     opacity:0.65;
@@ -648,13 +651,12 @@
       <path d="M2 6 C 12 -2, 18 14, 28 6 S 44 -2, 54 6 S 60 10, 62 6" stroke="#C9A876"/>
     </svg>
     <div class="social-row" id="footer-social">
-      <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V8c0-.9.25-1.5 1.55-1.5H17V3.7C16.6 3.65 15.6 3.5 14.4 3.5c-2.5 0-4.2 1.5-4.2 4.3v2.1H7.5V13H10.2v8h3.3z"/></svg></a>
-      <a href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.2 0-.3 0-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2 1 2.4c.1.2 1.6 2.5 4 3.4.6.2 1 .4 1.3.5.6.2 1.1.1 1.5-.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.5-.3z"/></svg></a>
-      <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2c.4 2.2 1.8 3.7 4 4v3c-1.4 0-2.7-.4-4-1.2v6.4a5.9 5.9 0 11-5.1-5.8v3.1a2.8 2.8 0 102 2.7V2h3.1z"/></svg></a>
-      <a href="#" aria-label="Pinterest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.6 19.3c0-.8 0-1.8.2-2.6l1.4-6s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.7 1.5 1.6 0 1-.6 2.5-1 3.9-.2 1.1.6 2 1.7 2 2 0 3.5-2.1 3.5-5.2 0-2.7-2-4.6-4.7-4.6-3.2 0-5.1 2.4-5.1 4.9 0 1 .4 2 .8 2.6.1.1.1.2.1.3l-.3 1.4c0 .2-.2.3-.4.2-1.4-.6-2.2-2.6-2.2-4.2 0-3.4 2.5-6.6 7.1-6.6 3.7 0 6.6 2.7 6.6 6.2 0 3.7-2.3 6.7-5.6 6.7-1.1 0-2.1-.6-2.5-1.2l-.7 2.6c-.2 1-.9 2.2-1.3 2.9A10 10 0 1012 2z"/></svg></a>
-      <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3.1 0 4.1.1 1 0 1.7.2 2.3.5.6.2 1.1.5 1.6 1 .5.5.8 1 1 1.6.3.6.5 1.3.5 2.3.1 1 .1 1.4.1 4.1s0 3.1-.1 4.1c0 1-.2 1.7-.5 2.3-.2.6-.5 1.1-1 1.6-.5.5-1 .8-1.6 1-.6.3-1.3.5-2.3.5-1 .1-1.4.1-4.1.1s-3.1 0-4.1-.1c-1 0-1.7-.2-2.3-.5-.6-.2-1.1-.5-1.6-1-.5-.5-.8-1-1-1.6-.3-.6-.5-1.3-.5-2.3C2 15.1 2 14.7 2 12s0-3.1.1-4.1c0-1 .2-1.7.5-2.3.2-.6.5-1.1 1-1.6.5-.5 1-.8 1.6-1 .6-.3 1.3-.5 2.3-.5C8.9 2 9.3 2 12 2zm0 5a5 5 0 100 10 5 5 0 000-10zm0 8.2a3.2 3.2 0 110-6.4 3.2 3.2 0 010 6.4zm5.2-8.4a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4z"/></svg></a>
+      <a href="#" id="social-facebook" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V8c0-.9.25-1.5 1.55-1.5H17V3.7C16.6 3.65 15.6 3.5 14.4 3.5c-2.5 0-4.2 1.5-4.2 4.3v2.1H7.5V13H10.2v8h3.3z"/></svg></a>
+      <a href="#" id="social-whatsapp" aria-label="WhatsApp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.2 0-.3 0-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2 1 2.4c.1.2 1.6 2.5 4 3.4.6.2 1 .4 1.3.5.6.2 1.1.1 1.5-.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.5-.3z"/></svg></a>
+      <a href="#" id="social-tiktok" aria-label="TikTok" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2c.4 2.2 1.8 3.7 4 4v3c-1.4 0-2.7-.4-4-1.2v6.4a5.9 5.9 0 11-5.1-5.8v3.1a2.8 2.8 0 102 2.7V2h3.1z"/></svg></a>
+      <a href="#" id="social-pinterest" aria-label="Pinterest" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.6 19.3c0-.8 0-1.8.2-2.6l1.4-6s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.7 1.5 1.6 0 1-.6 2.5-1 3.9-.2 1.1.6 2 1.7 2 2 0 3.5-2.1 3.5-5.2 0-2.7-2-4.6-4.7-4.6-3.2 0-5.1 2.4-5.1 4.9 0 1 .4 2 .8 2.6.1.1.1.2.1.3l-.3 1.4c0 .2-.2.3-.4.2-1.4-.6-2.2-2.6-2.2-4.2 0-3.4 2.5-6.6 7.1-6.6 3.7 0 6.6 2.7 6.6 6.2 0 3.7-2.3 6.7-5.6 6.7-1.1 0-2.1-.6-2.5-1.2l-.7 2.6c-.2 1-.9 2.2-1.3 2.9A10 10 0 1012 2z"/></svg></a>
+      <a href="#" id="social-instagram" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.7 0 3.1 0 4.1.1 1 0 1.7.2 2.3.5.6.2 1.1.5 1.6 1 .5.5.8 1 1 1.6.3.6.5 1.3.5 2.3.1 1 .1 1.4.1 4.1s0 3.1-.1 4.1c0 1-.2 1.7-.5 2.3-.2.6-.5 1.1-1 1.6-.5.5-1 .8-1.6 1-.6.3-1.3.5-2.3.5-1 .1-1.4.1-4.1.1s-3.1 0-4.1-.1c-1 0-1.7-.2-2.3-.5-.6-.2-1.1-.5-1.6-1-.5-.5-.8-1-1-1.6-.3-.6-.5-1.3-.5-2.3C2 15.1 2 14.7 2 12s0-3.1.1-4.1c0-1 .2-1.7.5-2.3.2-.6.5-1.1 1-1.6.5-.5 1-.8 1.6-1 .6-.3 1.3-.5 2.3-.5C8.9 2 9.3 2 12 2zm0 5a5 5 0 100 10 5 5 0 000-10zm0 8.2a3.2 3.2 0 110-6.4 3.2 3.2 0 010 6.4zm5.2-8.4a1.2 1.2 0 100-2.4 1.2 1.2 0 000 2.4z"/></svg></a>
     </div>
-    <div class="footer-contact">WhatsApp / +221 77 205 95 25</div>
     <div class="footer-contact">Dakar, Sénégal</div>
     <div class="footer-legal">© 2026 Henefen — Made in Senegal</div>
   </footer>
@@ -696,13 +698,6 @@
   burgerClose.addEventListener('click', () => burgerMenu.classList.remove('open'));
   burgerMenu.addEventListener('click', (e) => { if (e.target === burgerMenu) burgerMenu.classList.remove('open'); });
 
-  document.querySelectorAll('.thumb').forEach((t, i) => {
-    t.addEventListener('click', () => {
-      document.querySelectorAll('.thumb').forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      document.querySelectorAll('.dots span').forEach((d, di) => d.classList.toggle('active', di === i));
-    });
-  });
   document.querySelectorAll('.swatch').forEach(s => {
     s.addEventListener('click', () => {
       document.querySelectorAll('.swatch').forEach(x => x.classList.remove('active'));
@@ -744,29 +739,86 @@
     });
   }).catch(() => {});
 
-  // Aperçu produit : 3 vrais articles les plus récents
-  fetch('/api/products').then(r => r.json()).then(data => {
+  // Aperçu produit : 3 vrais articles les plus récents, avec galerie de vignettes interactive
+  fetch('/api/products').then(r => r.json()).then(async (data) => {
     const products = (data.products || []).slice(0, 3);
     const cards = document.querySelectorAll('.product-demo-layout .product-card');
-    products.forEach((p, i) => {
+
+    for (let i = 0; i < products.length; i++) {
+      const p = products[i];
       const card = cards[i];
-      if (!card) return;
+      if (!card) continue;
+
       const mainPhoto = card.querySelector('.product-main-photo');
-      if (p.photo_url) {
-        mainPhoto.style.backgroundImage = `url('${p.photo_url}')`;
+      const thumbs = Array.from(card.querySelectorAll('.thumb'));
+      const dots = Array.from(card.querySelectorAll('.dots span'));
+
+      card.querySelector('h3').textContent = p.name;
+      card.querySelector('.desc').textContent = p.description || '';
+      card.querySelector('.price').textContent = Number(p.price_fcfa).toLocaleString('fr-FR') + ' FCFA';
+
+      // Récupère toutes les photos de l'article (pas juste la première)
+      let photos = p.photo_url ? [p.photo_url] : [];
+      try {
+        const detail = await (await fetch(`/api/products/${encodeURIComponent(p.slug)}`)).json();
+        if (detail.product && detail.product.photos && detail.product.photos.length) {
+          photos = detail.product.photos;
+        }
+      } catch (e) {}
+
+      function showPhoto(url) {
+        if (!url) return;
+        mainPhoto.style.backgroundImage = `url('${url}')`;
         mainPhoto.style.backgroundSize = 'cover';
         mainPhoto.style.backgroundPosition = 'center';
         mainPhoto.textContent = '';
       }
-      card.querySelector('h3').textContent = p.name;
-      card.querySelector('.desc').textContent = p.description || '';
-      const priceEl = card.querySelector('.price');
-      priceEl.textContent = Number(p.price_fcfa).toLocaleString('fr-FR') + ' FCFA';
+      showPhoto(photos[0]);
+
+      thumbs.forEach((t, ti) => {
+        if (!photos[ti]) { t.style.display = 'none'; return; }
+        t.style.backgroundImage = `url('${photos[ti]}')`;
+        t.classList.toggle('active', ti === 0);
+        t.onclick = (e) => {
+          e.stopPropagation();
+          showPhoto(photos[ti]);
+          thumbs.forEach(x => x.classList.remove('active'));
+          t.classList.add('active');
+          dots.forEach((d, di) => d.classList.toggle('active', di === ti));
+        };
+      });
+      dots.forEach((d, di) => d.classList.toggle('active', di === 0));
+
+      const mixBtn = card.querySelector('.mix-btn');
+      if (mixBtn) {
+        mixBtn.onclick = (e) => {
+          e.stopPropagation();
+          window.location.href = '/boutique/?type=supersan';
+        };
+      }
+
       card.onclick = (e) => {
-        if (e.target.closest('select')) return;
+        if (e.target.closest('select') || e.target.closest('.thumb') || e.target.closest('.mix-btn')) return;
         window.location.href = `/produit/?slug=${p.slug}`;
       };
       card.style.cursor = 'pointer';
+    }
+  }).catch(() => {});
+
+  // Liens réseaux sociaux configurés depuis l'admin
+  fetch('/api/settings').then(r => r.json()).then(data => {
+    const s = data.settings || {};
+    const map = {
+      'social-facebook': s.social_facebook,
+      'social-whatsapp': s.social_whatsapp || 'https://wa.me/221772059525',
+      'social-tiktok': s.social_tiktok,
+      'social-pinterest': s.social_pinterest,
+      'social-instagram': s.social_instagram
+    };
+    Object.entries(map).forEach(([id, href]) => {
+      if (!href) return;
+      const el = document.getElementById(id);
+      if (el) el.href = href;
     });
   }).catch(() => {});
 

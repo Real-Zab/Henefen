@@ -75,6 +75,7 @@
       <button class="tab active" data-tab="products">Produits</button>
       <button class="tab" data-tab="categories">Catégories</button>
       <button class="tab" data-tab="currency">Devises</button>
+      <button class="tab" data-tab="social">Réseaux</button>
       <button class="tab" data-tab="photos">Photos</button>
     </div>
 
@@ -130,6 +131,25 @@
         <input type="number" step="0.0000001" id="fxGbp">
         <button type="submit">Enregistrer les taux</button>
         <div class="msg" id="currencyMsg"></div>
+      </form>
+    </div>
+
+    <div class="panel" id="panel-social">
+      <h2 style="font-size:18px; margin-bottom:14px;">Liens réseaux sociaux</h2>
+      <p style="font-size:12.5px; color:rgba(27,23,20,0.6); margin-bottom:10px;">Colle ici l'adresse complète de chaque page (ex: https://facebook.com/henefen). Laisse vide pour ne pas afficher le lien.</p>
+      <form class="stacked" id="socialForm">
+        <label>Facebook</label>
+        <input type="url" id="socialFacebook" placeholder="https://facebook.com/...">
+        <label>WhatsApp</label>
+        <input type="url" id="socialWhatsapp" placeholder="https://wa.me/221772059525">
+        <label>TikTok</label>
+        <input type="url" id="socialTiktok" placeholder="https://tiktok.com/@...">
+        <label>Pinterest</label>
+        <input type="url" id="socialPinterest" placeholder="https://pinterest.com/...">
+        <label>Instagram</label>
+        <input type="url" id="socialInstagram" placeholder="https://instagram.com/...">
+        <button type="submit">Enregistrer les liens</button>
+        <div class="msg" id="socialMsg"></div>
       </form>
     </div>
 
@@ -228,6 +248,7 @@
     loadProducts();
     loadCategories();
     loadSettings();
+    loadSocialLinks();
     loadHeroPhoto();
     loadProductSelect();
   }
@@ -427,6 +448,37 @@
         })
       });
       msg.textContent = 'Taux enregistrés.'; msg.className = 'msg ok';
+    } catch (e) {
+      msg.textContent = 'Erreur lors de l\'enregistrement.'; msg.className = 'msg error';
+    }
+  });
+
+  // Réseaux sociaux
+  async function loadSocialLinks() {
+    const res = await fetch('/api/admin/settings');
+    const data = await res.json();
+    document.getElementById('socialFacebook').value = data.settings.social_facebook || '';
+    document.getElementById('socialWhatsapp').value = data.settings.social_whatsapp || '';
+    document.getElementById('socialTiktok').value = data.settings.social_tiktok || '';
+    document.getElementById('socialPinterest').value = data.settings.social_pinterest || '';
+    document.getElementById('socialInstagram').value = data.settings.social_instagram || '';
+  }
+
+  document.getElementById('socialForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('socialMsg');
+    try {
+      await fetch('/api/admin/settings', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          social_facebook: document.getElementById('socialFacebook').value,
+          social_whatsapp: document.getElementById('socialWhatsapp').value,
+          social_tiktok: document.getElementById('socialTiktok').value,
+          social_pinterest: document.getElementById('socialPinterest').value,
+          social_instagram: document.getElementById('socialInstagram').value
+        })
+      });
+      msg.textContent = 'Liens enregistrés.'; msg.className = 'msg ok';
     } catch (e) {
       msg.textContent = 'Erreur lors de l\'enregistrement.'; msg.className = 'msg error';
     }
