@@ -66,7 +66,8 @@ CREATE TABLE IF NOT EXISTS categories (
   slug TEXT PRIMARY KEY CHECK (slug IN ('casual','diner','ceremonie','traditionnel')),
   label_top TEXT NOT NULL,
   label_bottom TEXT NOT NULL,
-  sort_order INTEGER NOT NULL DEFAULT 0
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  photo_key TEXT
 );
 
 CREATE TABLE IF NOT EXISTS settings (

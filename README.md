@@ -56,5 +56,11 @@ CREATE TABLE IF NOT EXISTS photos (
 ```
 5. Va dans `/admin/`, onglet **Photos** : dépose une photo d'accueil, ou choisis un article et ajoute-lui une photo.
 
+### 9. Ajouter la colonne photo aux catégories
+Dans la Console D1, exécute juste cette ligne :
+```
+ALTER TABLE categories ADD COLUMN photo_key TEXT;
+```
+
 ## Prochaine étape
-Produit, panier, compte — même logique, ajoutées directement dans `src/index.js`.
+Panier, compte — même logique, ajoutées directement dans `src/index.js`. La page produit et les photos par catégorie sont maintenant construites.

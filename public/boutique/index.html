@@ -499,7 +499,11 @@
   async function loadProducts(category) {
     content.innerHTML = '<div class="state-msg">Chargement des articles…</div>';
     try {
-      const url = category ? `/api/products?category=${category}` : '/api/products';
+      const params = new URLSearchParams();
+      if (category) params.set('category', category);
+      const type = new URLSearchParams(window.location.search).get('type');
+      if (type) params.set('type', type);
+      const url = params.toString() ? `/api/products?${params.toString()}` : '/api/products';
       const res = await fetch(url);
       if (!res.ok) throw new Error('reponse-non-ok');
       const data = await res.json();

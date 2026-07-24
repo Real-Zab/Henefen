@@ -60,9 +60,11 @@ export default {
       // ---------- Public: liste produits ----------
       if (path === '/api/products' && method === 'GET') {
         const category = url.searchParams.get('category');
+        const pieceType = url.searchParams.get('type');
         let query = `SELECT id, name, slug, description, category, piece_type, price_fcfa FROM products WHERE active = 1`;
         const params = [];
         if (category) { query += ` AND category = ?`; params.push(category); }
+        if (pieceType) { query += ` AND piece_type = ?`; params.push(pieceType); }
         query += ` ORDER BY created_at DESC`;
         const { results: products } = await env.DB.prepare(query).bind(...params).all();
         for (const p of products) {
@@ -74,9 +76,22 @@ export default {
         return json({ products });
       }
 
+      // ---------- Public: un seul produit (fiche article) ----------
+      if (path.startsWith('/api/products/') && method === 'GET') {
+        const slug = decodeURIComponent(path.replace('/api/products/', ''));
+        const product = await env.DB.prepare('SELECT * FROM products WHERE slug = ? AND active = 1').bind(slug).first();
+        if (!product) return json({ error: 'Introuvable' }, 404);
+        const { results: colors } = await env.DB.prepare('SELECT color_name, hex FROM product_colors WHERE product_id = ? ORDER BY sort_order').bind(product.id).all();
+        const { results: photoRows } = await env.DB.prepare('SELECT key FROM photos WHERE target_type = ? AND target_id = ? ORDER BY sort_order').bind('product', product.id).all();
+        product.colors = colors;
+        product.photos = photoRows.map(p => `/api/photos/${p.key}`);
+        return json({ product });
+      }
+
       // ---------- Public: catégories (libellés) ----------
       if (path === '/api/categories' && method === 'GET') {
         const { results } = await env.DB.prepare('SELECT * FROM categories ORDER BY sort_order').all();
+        results.forEach(c => c.photo_url = c.photo_key ? `/api/photos/${c.photo_key}` : null);
         return json({ categories: results });
       }
 
@@ -169,6 +184,7 @@ export default {
       // ---------- Admin: catégories ----------
       if (path === '/api/admin/categories' && method === 'GET') {
         const { results } = await env.DB.prepare('SELECT * FROM categories ORDER BY sort_order').all();
+        results.forEach(c => c.photo_url = c.photo_key ? `/api/photos/${c.photo_key}` : null);
         return json({ categories: results });
       }
       if (path === '/api/admin/categories' && method === 'PUT') {
@@ -241,9 +257,21 @@ export default {
         const targetType = form.get('target_type');
         const targetId = form.get('target_id') || null;
         if (!file || !targetType) return json({ error: 'Fichier et target_type requis' }, 400);
-        if (!['hero', 'product'].includes(targetType)) return json({ error: 'target_type invalide' }, 400);
+        if (!['hero', 'product', 'category'].includes(targetType)) return json({ error: 'target_type invalide' }, 400);
 
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+
+        // Photo de catégorie : stockée directement sur la catégorie, pas dans la table photos
+        if (targetType === 'category') {
+          if (!targetId) return json({ error: 'target_id (slug de catégorie) requis' }, 400);
+          const key = `category/${targetId}/${Date.now().toString(36)}.${ext}`;
+          const existing = await env.DB.prepare('SELECT photo_key FROM categories WHERE slug = ?').bind(targetId).first();
+          if (existing && existing.photo_key) { await env.PHOTOS.delete(existing.photo_key); }
+          await env.PHOTOS.put(key, await file.arrayBuffer(), { httpMetadata: { contentType: file.type || 'image/jpeg' } });
+          await env.DB.prepare('UPDATE categories SET photo_key = ? WHERE slug = ?').bind(key, targetId).run();
+          return json({ ok: true, key, url: `/api/photos/${key}` });
+        }
+
         const key = `${targetType}/${targetId || 'accueil'}/${Date.now().toString(36)}.${ext}`;
         await env.PHOTOS.put(key, await file.arrayBuffer(), {
           httpMetadata: { contentType: file.type || 'image/jpeg' }

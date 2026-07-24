@@ -321,15 +321,46 @@
     editor.innerHTML = '';
     data.categories.forEach(c => {
       const row = document.createElement('div');
+      row.style.marginBottom = '18px';
+      row.style.paddingBottom = '14px';
+      row.style.borderBottom = '1px solid var(--line)';
       row.innerHTML = `
         <div class="cat-edit">
           <span>${c.slug}</span>
           <input type="text" data-slug="${c.slug}" data-field="label_top" value="${c.label_top}" placeholder="Texte du haut">
           <input type="text" data-slug="${c.slug}" data-field="label_bottom" value="${c.label_bottom}" placeholder="Texte du bas">
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+          ${c.photo_url ? `<img src="${c.photo_url}" style="width:50px; height:62px; object-fit:cover; border:1px solid var(--line);">` : '<span style="font-size:11px; color:rgba(27,23,20,0.5);">Pas de photo</span>'}
+          <input type="file" accept="image/*" class="cat-photo-input" data-slug="${c.slug}" style="font-size:11px;">
+          <button type="button" class="small-btn cat-photo-btn" data-slug="${c.slug}">Enregistrer la photo</button>
+          <span class="msg cat-photo-msg" data-slug="${c.slug}"></span>
         </div>`;
       editor.appendChild(row);
     });
   }
+
+  document.getElementById('categoryEditor').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.cat-photo-btn');
+    if (!btn) return;
+    const slug = btn.dataset.slug;
+    const input = document.querySelector(`.cat-photo-input[data-slug="${slug}"]`);
+    const msg = document.querySelector(`.cat-photo-msg[data-slug="${slug}"]`);
+    if (!input.files[0]) { msg.textContent = 'Choisis une photo.'; msg.className = 'msg error cat-photo-msg'; return; }
+    const form = new FormData();
+    form.append('file', input.files[0]);
+    form.append('target_type', 'category');
+    form.append('target_id', slug);
+    try {
+      const res = await fetch('/api/admin/photos', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      msg.textContent = 'Enregistrée.'; msg.className = 'msg ok cat-photo-msg';
+      loadCategories();
+    } catch (err) {
+      msg.textContent = 'Erreur : ' + err.message; msg.className = 'msg error cat-photo-msg';
+    }
+  });
 
   document.getElementById('saveCategoriesBtn').addEventListener('click', async () => {
     const msg = document.getElementById('categoryMsg');

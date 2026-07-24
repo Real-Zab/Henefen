@@ -264,6 +264,9 @@
     padding:10px;
     font-size:11px;
     letter-spacing:0.04em;
+    text-decoration:none;
+    color:var(--ivory);
+    cursor:pointer;
   }
   .builder-piece b{ font-family:'Fraunces', serif; font-weight:500; font-style:italic; font-size:14px; display:block; margin-bottom:2px; }
   .builder-plus{ color:var(--sand); font-size:20px; font-family:'Fraunces', serif; }
@@ -527,11 +530,11 @@
       <div class="eyebrow">Occasions</div>
       <h2>Pour chaque moment</h2>
     </div>
-    <div class="cat-grid">
-      <div class="cat-tile"><small>Jour</small><span>Casual</span></div>
-      <div class="cat-tile"><small>Soir</small><span>Dîner</span></div>
-      <div class="cat-tile"><small>Grand jour</small><span>Cérémonie</span></div>
-      <div class="cat-tile"><small>Héritage</small><span>Tenue traditionnelle</span></div>
+    <div class="cat-grid" id="catGrid">
+      <div class="cat-tile" data-slug="casual"><small>Jour</small><span>Casual</span></div>
+      <div class="cat-tile" data-slug="diner"><small>Soir</small><span>Dîner</span></div>
+      <div class="cat-tile" data-slug="ceremonie"><small>Grand jour</small><span>Cérémonie</span></div>
+      <div class="cat-tile" data-slug="traditionnel"><small>Héritage</small><span>Tenue traditionnelle</span></div>
     </div>
   </section>
 
@@ -540,9 +543,9 @@
     <h2>Votre style, votre association</h2>
     <p>Une chemise qui vous plaît, un supersan qui vous ressemble — mariez-les librement et créez un ensemble qui n'appartient qu'à vous.</p>
     <div class="builder-pair">
-      <div class="builder-piece"><b>Chemise</b>Lin ivoire</div>
+      <a href="/boutique/?type=chemise" class="builder-piece"><b>Chemise</b>Voir toutes les chemises</a>
       <div class="builder-plus">+</div>
-      <div class="builder-piece"><b>Supersan</b>Lin bordeaux</div>
+      <a href="/boutique/?type=supersan" class="builder-piece"><b>Supersan</b>Voir tous les supersans</a>
     </div>
   </section>
 
@@ -721,6 +724,49 @@
       demoPrice.textContent = formatted;
     });
   }
+
+  // Tuiles catégories : libellés + photos réels depuis l'admin
+  fetch('/api/categories').then(r => r.json()).then(data => {
+    (data.categories || []).forEach(c => {
+      const tile = document.querySelector(`.cat-tile[data-slug="${c.slug}"]`);
+      if (!tile) return;
+      tile.querySelector('small').textContent = c.label_top;
+      tile.querySelector('span').textContent = c.label_bottom;
+      if (c.photo_url) {
+        tile.style.background = `linear-gradient(0deg, rgba(27,23,20,0.55), rgba(27,23,20,0.05) 45%), url('${c.photo_url}')`;
+        tile.style.backgroundSize = 'cover';
+        tile.style.backgroundPosition = 'center';
+      }
+      tile.onclick = () => { window.location.href = `/boutique/?category=${c.slug}`; };
+      tile.style.cursor = 'pointer';
+    });
+  }).catch(() => {});
+
+  // Aperçu produit : 3 vrais articles les plus récents
+  fetch('/api/products').then(r => r.json()).then(data => {
+    const products = (data.products || []).slice(0, 3);
+    const cards = document.querySelectorAll('.product-demo-layout .product-card');
+    products.forEach((p, i) => {
+      const card = cards[i];
+      if (!card) return;
+      const mainPhoto = card.querySelector('.product-main-photo');
+      if (p.photo_url) {
+        mainPhoto.style.backgroundImage = `url('${p.photo_url}')`;
+        mainPhoto.style.backgroundSize = 'cover';
+        mainPhoto.style.backgroundPosition = 'center';
+        mainPhoto.textContent = '';
+      }
+      card.querySelector('h3').textContent = p.name;
+      card.querySelector('.desc').textContent = p.description || '';
+      const priceEl = card.querySelector('.price');
+      priceEl.textContent = Number(p.price_fcfa).toLocaleString('fr-FR') + ' FCFA';
+      card.onclick = (e) => {
+        if (e.target.closest('select')) return;
+        window.location.href = `/produit/?slug=${p.slug}`;
+      };
+      card.style.cursor = 'pointer';
+    });
+  }).catch(() => {});
 
   // Photo d'accueil uploadée depuis l'admin, si elle existe
   fetch('/api/hero-photo').then(r => r.json()).then(data => {

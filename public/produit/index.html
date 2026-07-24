@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche produit — Henefen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bordeaux:#7C2333; --ivory:#F6F2EA; --ink:#1B1714; --sand:#C9A876; --line:rgba(27,23,20,0.14); }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--ivory); color:var(--ink); font-family:'Inter', sans-serif; }
+  h1,h2,h3{ font-family:'Fraunces', serif; font-weight:500; }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--line); }
+  .nav-icon-btn{ background:none; border:none; color:var(--ink); display:flex; }
+  .logo-wordmark{ font-family:'Fraunces', serif; font-style:italic; font-size:22px; color:var(--bordeaux); text-decoration:none; }
+  .main-photo{ width:100%; aspect-ratio:4/5; background:linear-gradient(150deg,#efe6d4,#C9A876 60%,#8f7248); background-size:cover; background-position:center; }
+  .thumb-row{ display:flex; gap:8px; padding:10px 22px; overflow-x:auto; }
+  .thumb{ flex:0 0 56px; aspect-ratio:3/4; background-size:cover; background-position:center; background-color:#e7dcc4; cursor:pointer; border:2px solid transparent; }
+  .thumb.active{ border-color:var(--bordeaux); }
+  .info{ padding:16px 22px 60px; max-width:520px; }
+  .info h1{ font-size:20px; margin-bottom:6px; }
+  .desc{ font-size:13px; color:rgba(27,23,20,0.6); margin-bottom:14px; }
+  .price-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .price{ font-family:'Fraunces', serif; font-size:22px; }
+  .currency-select{ font-size:11px; border:1px solid var(--line); background:transparent; padding:8px 12px; }
+  .swatches{ display:flex; gap:10px; margin-bottom:20px; }
+  .swatch{ width:24px; height:24px; border-radius:50%; border:2px solid transparent; cursor:pointer; }
+  .swatch.active{ border-color:var(--ink); }
+  .mix-btn{ display:block; width:100%; border:1px solid var(--ink); background:transparent; padding:14px; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; text-align:center; text-decoration:none; color:var(--ink); font-weight:600; }
+  .state-msg{ padding:60px 22px; text-align:center; color:rgba(27,23,20,0.5); }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/boutique/" class="nav-icon-btn" aria-label="Retour"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <a href="/" class="logo-wordmark">Henefen</a>
+    <a href="/panier/" class="nav-icon-btn" aria-label="Panier"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg></a>
+  </nav>
+
+  <div id="content"><div class="state-msg">Chargement…</div></div>
+
+<script>
+  const FX_SYMBOL = { FCFA: 'FCFA', EUR: '€', USD: '$', GBP: '£' };
+  let fxRates = { FCFA: 1 };
+  let currentProduct = null;
+
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  const content = document.getElementById('content');
+
+  async function init() {
+    if (!slug) { content.innerHTML = '<div class="state-msg">Article introuvable.</div>'; return; }
+    try {
+      const [prodRes, settingsRes] = await Promise.all([
+        fetch(`/api/products/${encodeURIComponent(slug)}`),
+        fetch('/api/settings')
+      ]);
+      if (!prodRes.ok) throw new Error('404');
+      const data = await prodRes.json();
+      const settings = await settingsRes.json();
+      fxRates.EUR = parseFloat(settings.settings.fx_eur) || 0;
+      fxRates.USD = parseFloat(settings.settings.fx_usd) || 0;
+      fxRates.GBP = parseFloat(settings.settings.fx_gbp) || 0;
+      currentProduct = data.product;
+      render(currentProduct);
+    } catch (e) {
+      content.innerHTML = '<div class="state-msg">Cet article est introuvable ou plus disponible.</div>';
+    }
+  }
+
+  function render(p) {
+    const photos = p.photos && p.photos.length ? p.photos : [];
+    const mainPhoto = photos[0] || '';
+    const thumbs = photos.map((url, i) => `<div class="thumb ${i===0?'active':''}" data-url="${url}" style="background-image:url('${url}')"></div>`).join('');
+    const swatches = (p.colors || []).map((c, i) => `<div class="swatch ${i===0?'active':''}" style="background:${c.hex}"></div>`).join('');
+
+    content.innerHTML = `
+      <div class="main-photo" id="mainPhoto" style="${mainPhoto ? `background-image:url('${mainPhoto}')` : ''}"></div>
+      <div class="thumb-row">${thumbs}</div>
+      <div class="info">
+        <h1>${p.name}</h1>
+        <div class="desc">${p.description || ''}</div>
+        <div class="price-row">
+          <span class="price" id="priceEl" data-fcfa="${p.price_fcfa}">${Number(p.price_fcfa).toLocaleString('fr-FR')} FCFA</span>
+          <select class="currency-select" id="currencySelect">
+            <option value="FCFA">FCFA</option>
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+        <div class="swatches">${swatches}</div>
+        ${p.piece_type === 'chemise' ? '<a href="/boutique/?type=supersan" class="mix-btn">Assortir avec un supersan →</a>' : ''}
+        ${p.piece_type === 'supersan' ? '<a href="/boutique/?type=chemise" class="mix-btn">Assortir avec une chemise →</a>' : ''}
+      </div>
+    `;
+
+    document.querySelectorAll('.thumb').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.thumb').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById('mainPhoto').style.backgroundImage = `url('${t.dataset.url}')`;
+      });
+    });
+    document.querySelectorAll('.swatch').forEach(s => {
+      s.addEventListener('click', () => {
+        document.querySelectorAll('.swatch').forEach(x => x.classList.remove('active'));
+        s.classList.add('active');
+      });
+    });
+    document.getElementById('currencySelect').addEventListener('change', (e) => {
+      const priceEl = document.getElementById('priceEl');
+      const fcfa = Number(priceEl.dataset.fcfa);
+      const cur = e.target.value;
+      const converted = fcfa * (fxRates[cur] || 1);
+      priceEl.textContent = cur === 'FCFA'
+        ? Math.round(converted).toLocaleString('fr-FR') + ' FCFA'
+        : converted.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + FX_SYMBOL[cur];
+    });
+  }
+
+  init();
+</script>
+</body>
+</html>
