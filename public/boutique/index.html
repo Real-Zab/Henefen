@@ -438,6 +438,16 @@
     white-space:nowrap;
   }
   .filter-chip.active{ background:var(--ink); color:var(--ivory); }
+  .filters-label{
+    padding:14px 22px 0;
+    font-size:11px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--sand);
+    font-weight:600;
+  }
+  .type-filters{ border-bottom:1px solid var(--line); padding-top:8px; }
+  .type-chip.active{ background:var(--bordeaux); color:var(--ivory); border-color:var(--bordeaux); }
   .grid{
     display:grid;
     grid-template-columns:repeat(2, 1fr);
@@ -460,6 +470,7 @@
   @media (min-width:860px){
     .nav{ max-width:1200px; margin:0 auto; }
     .filters{ max-width:1200px; margin:0 auto; }
+    .filters-label{ max-width:1200px; margin:0 auto; padding-left:48px; }
     .grid{ max-width:1200px; margin:0 auto; grid-template-columns:repeat(4, 1fr); gap:22px; padding:24px 48px 80px; }
   }
 </style>
@@ -488,6 +499,15 @@
     <button class="filter-chip" data-cat="traditionnel">Traditionnel</button>
   </div>
 
+  <div class="filters-label">Type de pièce</div>
+  <div class="filters type-filters" id="typeFilters">
+    <button class="filter-chip type-chip active" data-type="">Tout</button>
+    <button class="filter-chip type-chip" data-type="chemise">Chemises</button>
+    <button class="filter-chip type-chip" data-type="supersan">Supersans</button>
+    <button class="filter-chip type-chip" data-type="pantalon">Pantalons</button>
+    <button class="filter-chip type-chip" data-type="ensemble">Ensembles</button>
+  </div>
+
   <div id="content">
     <div class="state-msg">Chargement des articles…</div>
   </div>
@@ -495,14 +515,14 @@
 <script>
   const content = document.getElementById('content');
   const filters = document.getElementById('filters');
+  const typeFilters = document.getElementById('typeFilters');
 
-  async function loadProducts(category) {
+  async function loadProducts(category, pieceType) {
     content.innerHTML = '<div class="state-msg">Chargement des articles…</div>';
     try {
       const params = new URLSearchParams();
       if (category) params.set('category', category);
-      const type = new URLSearchParams(window.location.search).get('type');
-      if (type) params.set('type', type);
+      if (pieceType) params.set('type', pieceType);
       const url = params.toString() ? `/api/products?${params.toString()}` : '/api/products';
       const res = await fetch(url);
       if (!res.ok) throw new Error('reponse-non-ok');
@@ -515,7 +535,7 @@
 
   function renderGrid(products) {
     if (!products || products.length === 0) {
-      content.innerHTML = '<div class="state-msg">Aucun article dans cette catégorie pour l’instant.</div>';
+      content.innerHTML = '<div class="state-msg">Aucun article dans cette sélection pour l’instant.</div>';
       return;
     }
     const grid = document.createElement('div');
@@ -538,21 +558,38 @@
     content.appendChild(grid);
   }
 
+  let currentCategory = new URLSearchParams(window.location.search).get('category') || '';
+  let currentType = new URLSearchParams(window.location.search).get('type') || '';
+
   filters.addEventListener('click', (e) => {
     const btn = e.target.closest('.filter-chip');
     if (!btn) return;
     filters.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    loadProducts(btn.dataset.cat);
+    currentCategory = btn.dataset.cat;
+    loadProducts(currentCategory, currentType);
   });
 
-  const initialCategory = new URLSearchParams(window.location.search).get('category') || '';
-  if (initialCategory) {
+  typeFilters.addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-chip');
+    if (!btn) return;
+    typeFilters.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentType = btn.dataset.type;
+    loadProducts(currentCategory, currentType);
+  });
+
+  if (currentCategory) {
     filters.querySelectorAll('.filter-chip').forEach(b => {
-      b.classList.toggle('active', b.dataset.cat === initialCategory);
+      b.classList.toggle('active', b.dataset.cat === currentCategory);
     });
   }
-  loadProducts(initialCategory);
+  if (currentType) {
+    typeFilters.querySelectorAll('.filter-chip').forEach(b => {
+      b.classList.toggle('active', b.dataset.type === currentType);
+    });
+  }
+  loadProducts(currentCategory, currentType);
 </script>
 </body>
 </html>
