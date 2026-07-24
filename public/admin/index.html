@@ -105,6 +105,8 @@
         <label>Couleurs</label>
         <div id="colorRows"></div>
         <button type="button" class="small-btn" id="addColorRow">+ Ajouter une couleur</button>
+        <label>Photos de l'article (plusieurs à la fois)</label>
+        <input type="file" id="pPhotos" accept="image/*" multiple>
         <button type="submit">Créer l'article</button>
         <div class="msg" id="productMsg"></div>
       </form>
@@ -165,8 +167,8 @@
       <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6);">Choisir un article</label>
       <select id="productPhotoSelect" style="width:100%; padding:10px; border:1px solid var(--line); margin:6px 0 12px; font-size:14px;"></select>
       <div id="productPhotoGrid" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;"></div>
-      <input type="file" id="productPhotoInput" accept="image/*" style="margin-bottom:10px;">
-      <button class="small-btn" id="uploadProductPhotoBtn">Ajouter cette photo à l'article</button>
+      <input type="file" id="productPhotoInput" accept="image/*" multiple style="margin-bottom:10px;">
+      <button class="small-btn" id="uploadProductPhotoBtn">Ajouter ces photos à l'article</button>
       <div class="msg" id="productPhotoMsg"></div>
     </div>
   </div>
@@ -294,13 +296,20 @@
       colors
     };
     const msg = document.getElementById('productMsg');
+    const photoFiles = [...(document.getElementById('pPhotos').files || [])];
     try {
       const res = await fetch('/api/admin/products', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      msg.textContent = 'Article créé.'; msg.className = 'msg ok';
+
+      if (photoFiles.length) {
+        msg.textContent = `Article créé. Envoi de ${photoFiles.length} photo(s)…`; msg.className = 'msg ok';
+        await uploadMultiplePhotos(photoFiles, 'product', data.id);
+      }
+
+      msg.textContent = 'Article créé' + (photoFiles.length ? ' avec ses photos.' : '.'); msg.className = 'msg ok';
       document.getElementById('productForm').reset();
       document.getElementById('colorRows').innerHTML = '';
       addColorRow('Bordeaux', '#7C2333');
@@ -309,6 +318,30 @@
       msg.textContent = 'Erreur : ' + err.message; msg.className = 'msg error';
     }
   });
+
+  // Envoie plusieurs photos à la suite pour un même article/catégorie/accueil
+  async function uploadMultiplePhotos(files, targetType, targetId) {
+    for (const file of files) {
+      const compressed = await compressImage(file);
+      const form = new FormData();
+      form.append('file', compressed);
+      form.append('target_type', targetType);
+      if (targetId) form.append('target_id', targetId);
+      await fetch('/api/admin/photos', { method: 'POST', body: form });
+    }
+  }
+
+  function escapeAttr(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  function optionsFor(field, selected) {
+    const lists = {
+      category: [['casual', 'Casual'], ['diner', 'Dîner'], ['ceremonie', 'Cérémonie'], ['traditionnel', 'Traditionnel']],
+      piece_type: [['chemise', 'Chemise'], ['supersan', 'Supersan'], ['pantalon', 'Pantalon'], ['ensemble', 'Ensemble']]
+    };
+    return lists[field].map(([v, label]) => `<option value="${v}" ${v === selected ? 'selected' : ''}>${label}</option>`).join('');
+  }
 
   async function loadProducts() {
     const list = document.getElementById('productList');
@@ -327,9 +360,24 @@
               <div class="meta">${p.category} · ${p.piece_type} · ${Number(p.price_fcfa).toLocaleString('fr-FR')} FCFA</div>
             </div>
             <div class="card-actions">
+              <button data-action="edit" data-id="${p.id}">Modifier</button>
               <button data-action="toggle" data-id="${p.id}" data-active="${p.active}">${p.active ? 'Masquer' : 'Afficher'}</button>
               <button data-action="delete" data-id="${p.id}" class="danger">Supprimer</button>
             </div>
+          </div>
+          <div class="edit-panel" id="edit-${p.id}" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
+            <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6);">Nom</label>
+            <input type="text" class="e-name" value="${escapeAttr(p.name)}" style="width:100%; padding:8px; border:1px solid var(--line); margin:4px 0 8px;">
+            <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6);">Description</label>
+            <textarea class="e-desc" rows="2" style="width:100%; padding:8px; border:1px solid var(--line); margin:4px 0 8px;">${escapeAttr(p.description)}</textarea>
+            <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6);">Catégorie</label>
+            <select class="e-category" style="width:100%; padding:8px; border:1px solid var(--line); margin:4px 0 8px;">${optionsFor('category', p.category)}</select>
+            <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6);">Type de pièce</label>
+            <select class="e-type" style="width:100%; padding:8px; border:1px solid var(--line); margin:4px 0 8px;">${optionsFor('piece_type', p.piece_type)}</select>
+            <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(27,23,20,0.6);">Prix (FCFA)</label>
+            <input type="number" class="e-price" value="${p.price_fcfa}" style="width:100%; padding:8px; border:1px solid var(--line); margin:4px 0 8px;">
+            <button type="button" class="small-btn" data-action="save-edit" data-id="${p.id}">Enregistrer les modifications</button>
+            <div class="msg e-msg" data-id="${p.id}"></div>
           </div>`;
         list.appendChild(card);
       });
@@ -342,7 +390,31 @@
     const btn = e.target.closest('button');
     if (!btn) return;
     const id = btn.dataset.id;
-    if (btn.dataset.action === 'delete') {
+    if (btn.dataset.action === 'edit') {
+      const panel = document.getElementById('edit-' + id);
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    } else if (btn.dataset.action === 'save-edit') {
+      const panel = document.getElementById('edit-' + id);
+      const msg = panel.querySelector('.e-msg');
+      const body = {
+        id,
+        name: panel.querySelector('.e-name').value,
+        description: panel.querySelector('.e-desc').value,
+        category: panel.querySelector('.e-category').value,
+        piece_type: panel.querySelector('.e-type').value,
+        price_fcfa: Number(panel.querySelector('.e-price').value)
+      };
+      try {
+        const res = await fetch('/api/admin/products', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error((await res.json()).error);
+        msg.textContent = 'Modifications enregistrées.'; msg.className = 'msg ok e-msg';
+        loadProducts();
+      } catch (err) {
+        msg.textContent = 'Erreur : ' + err.message; msg.className = 'msg error e-msg';
+      }
+    } else if (btn.dataset.action === 'delete') {
       if (!confirm('Supprimer définitivement cet article ?')) return;
       await fetch('/api/admin/products?id=' + id, { method: 'DELETE' });
       loadProducts();
@@ -567,18 +639,12 @@
     const input = document.getElementById('productPhotoInput');
     const msg = document.getElementById('productPhotoMsg');
     if (!select.value) { msg.textContent = 'Choisis un article.'; msg.className = 'msg error'; return; }
-    if (!input.files[0]) { msg.textContent = 'Choisis une photo.'; msg.className = 'msg error'; return; }
-    msg.textContent = 'Compression et envoi…'; msg.className = 'msg';
-    const compressed = await compressImage(input.files[0]);
-    const form = new FormData();
-    form.append('file', compressed);
-    form.append('target_type', 'product');
-    form.append('target_id', select.value);
+    const files = [...(input.files || [])];
+    if (!files.length) { msg.textContent = 'Choisis au moins une photo.'; msg.className = 'msg error'; return; }
+    msg.textContent = `Compression et envoi de ${files.length} photo(s)…`; msg.className = 'msg';
     try {
-      const res = await fetch('/api/admin/photos', { method: 'POST', body: form });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      msg.textContent = 'Photo ajoutée.'; msg.className = 'msg ok';
+      await uploadMultiplePhotos(files, 'product', select.value);
+      msg.textContent = 'Photo(s) ajoutée(s).'; msg.className = 'msg ok';
       input.value = '';
       loadProductPhotos();
     } catch (err) {

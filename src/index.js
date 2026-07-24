@@ -163,16 +163,24 @@ export default {
 
         if (method === 'PUT') {
           const body = await request.json();
-          const { id, name, category, piece_type, price_fcfa, description, active, colors } = body;
+          const { id } = body;
           if (!id) return json({ error: 'id requis' }, 400);
+          const existing = await env.DB.prepare('SELECT * FROM products WHERE id = ?').bind(id).first();
+          if (!existing) return json({ error: 'Introuvable' }, 404);
+          const name = body.name !== undefined ? body.name : existing.name;
+          const description = body.description !== undefined ? body.description : existing.description;
+          const category = body.category !== undefined ? body.category : existing.category;
+          const piece_type = body.piece_type !== undefined ? body.piece_type : existing.piece_type;
+          const price_fcfa = body.price_fcfa !== undefined ? body.price_fcfa : existing.price_fcfa;
+          const active = body.active !== undefined ? (body.active ? 1 : 0) : existing.active;
           await env.DB.prepare(
             `UPDATE products SET name=?, description=?, category=?, piece_type=?, price_fcfa=?, active=? WHERE id=?`
-          ).bind(name, description || '', category, piece_type, price_fcfa, active ? 1 : 0, id).run();
-          if (Array.isArray(colors)) {
+          ).bind(name, description || '', category, piece_type, price_fcfa, active, id).run();
+          if (Array.isArray(body.colors)) {
             await env.DB.prepare('DELETE FROM product_colors WHERE product_id = ?').bind(id).run();
-            for (let i = 0; i < colors.length; i++) {
+            for (let i = 0; i < body.colors.length; i++) {
               await env.DB.prepare('INSERT INTO product_colors (product_id, color_name, hex, sort_order) VALUES (?, ?, ?, ?)')
-                .bind(id, colors[i].color_name, colors[i].hex, i).run();
+                .bind(id, body.colors[i].color_name, body.colors[i].hex, i).run();
             }
           }
           return json({ ok: true });

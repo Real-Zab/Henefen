@@ -491,14 +491,6 @@
     </div>
   </nav>
 
-  <div class="filters" id="filters">
-    <button class="filter-chip active" data-cat="">Tout</button>
-    <button class="filter-chip" data-cat="casual">Casual</button>
-    <button class="filter-chip" data-cat="diner">Dîner</button>
-    <button class="filter-chip" data-cat="ceremonie">Cérémonie</button>
-    <button class="filter-chip" data-cat="traditionnel">Traditionnel</button>
-  </div>
-
   <div class="filters-label">Type de pièce</div>
   <div class="filters type-filters" id="typeFilters">
     <button class="filter-chip type-chip active" data-type="">Tout</button>
@@ -514,7 +506,6 @@
 
 <script>
   const content = document.getElementById('content');
-  const filters = document.getElementById('filters');
   const typeFilters = document.getElementById('typeFilters');
 
   async function loadProducts(category, pieceType) {
@@ -558,17 +549,10 @@
     content.appendChild(grid);
   }
 
-  let currentCategory = new URLSearchParams(window.location.search).get('category') || '';
+  // La catégorie peut arriver via un lien (ex: tuile de l'accueil) mais n'a plus de chip visible ici —
+  // elle reste appliquée au chargement, seul le type de pièce est modifiable dans cette page.
+  const currentCategory = new URLSearchParams(window.location.search).get('category') || '';
   let currentType = new URLSearchParams(window.location.search).get('type') || '';
-
-  filters.addEventListener('click', (e) => {
-    const btn = e.target.closest('.filter-chip');
-    if (!btn) return;
-    filters.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentCategory = btn.dataset.cat;
-    loadProducts(currentCategory, currentType);
-  });
 
   typeFilters.addEventListener('click', (e) => {
     const btn = e.target.closest('.filter-chip');
@@ -579,11 +563,6 @@
     loadProducts(currentCategory, currentType);
   });
 
-  if (currentCategory) {
-    filters.querySelectorAll('.filter-chip').forEach(b => {
-      b.classList.toggle('active', b.dataset.cat === currentCategory);
-    });
-  }
   if (currentType) {
     typeFilters.querySelectorAll('.filter-chip').forEach(b => {
       b.classList.toggle('active', b.dataset.type === currentType);
